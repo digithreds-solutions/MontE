@@ -1,0 +1,70 @@
+# =====================================================================
+# Mont-E .gitignore
+# Covers: Swift / SwiftUI / Xcode / SPM, macOS System, Build DMGs & Secrets
+# =====================================================================
+
+# --- macOS System Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# --- Swift, Xcode & Swift Package Manager (SPM) ---
+.build/
+**/.build/
+.swiftpm/
+**/.swiftpm/
+xcuserdata/
+*.xcuserdatad
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcscmblueprint
+DerivedData/
+*.hmap
+*.dSYM/
+*.dSYM.zip
+*.ipa
+timeline.xctimeline
+playground.xcworkspace
+
+# --- IDEs & Editors ---
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+*.swp
+*.swo
+*~
+
+# --- Build Outputs, Bundles & Artifacts ---
+dist/
+**/dist/
+out/
+**/out/
+*.app/
+**/*.app/
+*.dmg
+**/*.dmg
+Packages/*.dmg
+!Packages/README.md
+
+# --- Secrets, Environment & Certificates ---
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.cer
+*.crt
+*.keystore
+*.jks
+*.mobileprovision
+
+# General Temporary & Log Files
+*.log
+*.tmp
