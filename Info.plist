@@ -24,5 +24,11 @@
 	<true/>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Mont-E monitors battery levels and connection status of connected Bluetooth accessories (AirPods, Magic Mouse, Trackpad, Keyboard).</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Mont-E monitors battery levels of connected Bluetooth peripherals.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Mont-E reads your current Wi-Fi network SSID and diagnostics.</string>
 </dict>
 </plist>
