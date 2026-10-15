@@ -29,6 +29,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var powerNotificationSource: CFRunLoopSource?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.digithreads.monte")
+        if runningApps.filter({ $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }).count > 0 {
+            NSLog("Another instance of Mont-E is already running. Exiting.")
+            NSApp.terminate(nil)
+            return
+        }
+
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
 
         viewModel = MonteViewModel()

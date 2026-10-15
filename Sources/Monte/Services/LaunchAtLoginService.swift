@@ -13,20 +13,20 @@ struct LaunchAtLoginService {
 
     static var isEnabled: Bool {
         get {
-            if MonteSettingsStore.shared.settings.launchAtLogin {
-                return true
-            }
-            if #available(macOS 13.0, *) {
-                if SMAppService.mainApp.status == .enabled { return true }
-            }
-            return FileManager.default.fileExists(atPath: launchAgentPlistURL.path)
+            MonteSettingsStore.shared.settings.launchAtLogin
         }
         set {
             var s = MonteSettingsStore.shared.settings
             s.launchAtLogin = newValue
             MonteSettingsStore.shared.settings = s
+            setEnabled(newValue)
+        }
+    }
 
-            if newValue {
+    /// Asynchronously registers or unregisters launch at login without blocking the main thread
+    static func setEnabled(_ enabled: Bool) {
+        Task(priority: .utility) {
+            if enabled {
                 register()
             } else {
                 unregister()
@@ -36,17 +36,22 @@ struct LaunchAtLoginService {
 
     /// Ensures login items and launch agents are active on startup if enabled in settings
     static func ensureSynchronized() {
-        if isEnabled {
-            register()
-        }
+        let shouldBeEnabled = MonteSettingsStore.shared.settings.launchAtLogin
+        setEnabled(shouldBeEnabled)
     }
 
     private static func register() {
+        var smRegistered = false
         // 1. SMAppService for macOS 13+ (Apple System Settings Login Items)
         if #available(macOS 13.0, *) {
             do {
                 if SMAppService.mainApp.status != .enabled {
                     try SMAppService.mainApp.register()
+                }
+                if SMAppService.mainApp.status == .enabled {
+                    smRegistered = true
+                    // Remove fallback launch agent if SMAppService succeeded
+                    removeLaunchAgent()
                 }
             } catch {
                 NSLog("SMAppService registration notice: \(error.localizedDescription)")
@@ -54,7 +59,9 @@ struct LaunchAtLoginService {
         }
 
         // 2. Universal User LaunchAgent Plist Fallback (Survives ad-hoc signing, updates, & reboots)
-        setupLaunchAgent()
+        if !smRegistered {
+            setupLaunchAgent()
+        }
     }
 
     private static func unregister() {

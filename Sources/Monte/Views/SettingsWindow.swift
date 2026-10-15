@@ -801,11 +801,9 @@ struct ActiveKeepAwakeItem: Identifiable {
 
             // 1. Launch and Wake Behavior
             SettingsSectionRow(label: "Launch and Wake Behavior:") {
-                Toggle("Launch Mont-E automatically at login", isOn: Binding(
-                    get: { LaunchAtLoginService.isEnabled },
-                    set: { LaunchAtLoginService.isEnabled = $0 }
-                ))
-                .font(.system(size: 12))
+                Toggle("Launch Mont-E automatically at login", isOn: $viewModel.settings.launchAtLogin)
+                    .font(.system(size: 12))
+                    .toggleStyle(.checkbox)
 
                 SettingsSubHint(text: "Runs silently as a native menu bar background agent without Dock clutter")
 

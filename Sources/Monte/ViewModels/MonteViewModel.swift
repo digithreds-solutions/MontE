@@ -12,6 +12,9 @@ final class MonteViewModel {
     var settings: MonteSettings {
         didSet {
             MonteSettingsStore.shared.settings = settings
+            if settings.launchAtLogin != oldValue.launchAtLogin {
+                LaunchAtLoginService.setEnabled(settings.launchAtLogin)
+            }
         }
     }
     var logRetentionDays: Int = 7
