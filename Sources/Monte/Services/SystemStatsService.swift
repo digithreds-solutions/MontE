@@ -526,7 +526,7 @@ final class SystemStatsService: @unchecked Sendable {
 
         var usedGb = 0.0
         if kr == KERN_SUCCESS {
-            let pageSize = UInt64(vm_kernel_page_size)
+            let pageSize = UInt64(getpagesize())
             // macOS Activity Monitor definition of "Memory Used":
             // App Memory = internal_page_count - purgeable_count
             // Wired Memory = wire_count

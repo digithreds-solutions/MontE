@@ -3,7 +3,7 @@ import AppKit
 
 // MARK: - Modern Sleek Glowing Status Dot
 
-struct GlowingStatusDot: View {
+@MainActor struct GlowingStatusDot: View {
     let color: Color
     var size: CGFloat = 8.0
     var isPulsating: Bool = true
@@ -79,7 +79,7 @@ enum SystemShortcut {
 
 // MARK: - Aerated Menu Statistics Grid View (Top of Overflow Menu)
 
-struct MenuStatsGridView: View {
+@MainActor struct MenuStatsGridView: View {
     @Bindable var viewModel: MonteViewModel
     var onRefresh: () -> Void
     var onOpenDashboard: () -> Void
@@ -712,7 +712,7 @@ struct MenuStatsGridView: View {
 
 // MARK: - Reusable Clean Monochrome Stat Cell (Consistent 52pt Height)
 
-private struct StatGridCell: View {
+@MainActor private struct StatGridCell: View {
     let symbolName: String
     let title: String
     let value: String
@@ -749,7 +749,7 @@ private struct StatGridCell: View {
 
 // MARK: - Small Vertical Swap Level Bar
 
-struct SwapMicroBar: View {
+@MainActor struct SwapMicroBar: View {
     let ratio: Double
     let risk: SwapRiskLevel
 

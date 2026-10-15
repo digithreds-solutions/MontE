@@ -401,7 +401,7 @@ struct MonteSettings: Codable, Equatable {
 
 // MARK: - Settings Store
 
-final class MonteSettingsStore {
+final class MonteSettingsStore: @unchecked Sendable {
     static let shared = MonteSettingsStore()
     private let key = "MontESettings_v2"
     private let defaults = UserDefaults.standard

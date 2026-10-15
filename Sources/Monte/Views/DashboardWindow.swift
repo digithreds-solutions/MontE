@@ -84,7 +84,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
 
 // MARK: - Dashboard Root View (Matching Settings Toolbar & Form Design)
 
-struct DashboardView: View {
+@MainActor struct DashboardView: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (SettingsTab) -> Void = { _ in }
     @State private var isRefreshing = false
@@ -284,7 +284,7 @@ struct DashboardView: View {
 
 // MARK: - Dashboard Toolbar Tab Button
 
-private struct DashboardToolbarTabButton: View {
+@MainActor private struct DashboardToolbarTabButton: View {
     let tab: DashboardTab
     let isSelected: Bool
     let onSelect: () -> Void
@@ -322,7 +322,7 @@ private struct DashboardToolbarTabButton: View {
 
 // MARK: - Tab 1: Overview Tab
 
-private struct DashboardOverviewTab: View {
+@MainActor private struct DashboardOverviewTab: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (SettingsTab) -> Void
 
@@ -634,7 +634,7 @@ private struct DashboardOverviewTab: View {
 
 // MARK: - In-Place Card Re-organize Toolbar
 
-private struct ReorganizeCardToolbar: View {
+@MainActor private struct ReorganizeCardToolbar: View {
     let cardConfig: DashboardOverviewCardConfig
     let displayIndex: Int
     let totalVisible: Int
@@ -702,7 +702,7 @@ private struct ReorganizeCardToolbar: View {
 
 // MARK: - Dashboard Overview Customization Sheet
 
-struct DashboardOverviewCustomizeSheet: View {
+@MainActor struct DashboardOverviewCustomizeSheet: View {
     @Bindable var viewModel: MonteViewModel
     @Environment(\.dismiss) private var dismiss
 
@@ -901,7 +901,7 @@ struct DashboardOverviewCustomizeSheet: View {
 
 // MARK: - Reusable Dashboard Overview Cards Settings View (For Settings Window)
 
-struct DashboardOverviewCardsSettingsView: View {
+@MainActor struct DashboardOverviewCardsSettingsView: View {
     @Bindable var viewModel: MonteViewModel
 
     var body: some View {
@@ -1027,7 +1027,7 @@ struct DashboardOverviewCardsSettingsView: View {
 
 // MARK: - Tab 2: CPU & Processes Tab
 
-private struct DashboardCpuTab: View {
+@MainActor private struct DashboardCpuTab: View {
     @Bindable var viewModel: MonteViewModel
     private var h: SystemHealth { viewModel.health }
 
@@ -1065,7 +1065,7 @@ private struct DashboardCpuTab: View {
 
 // MARK: - Tab 3: Memory & Swap Tab
 
-private struct DashboardMemoryTab: View {
+@MainActor private struct DashboardMemoryTab: View {
     @Bindable var viewModel: MonteViewModel
     private var h: SystemHealth { viewModel.health }
 
@@ -1134,7 +1134,7 @@ private struct DashboardMemoryTab: View {
 
 // MARK: - Tab 4: Battery & Power Tab
 
-private struct DashboardBatteryTab: View {
+@MainActor private struct DashboardBatteryTab: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (SettingsTab) -> Void
     private var h: SystemHealth { viewModel.health }
@@ -1199,7 +1199,7 @@ private struct DashboardBatteryTab: View {
 
 // MARK: - Tab 5: Keep-Awake Tab
 
-private struct DashboardKeepAwakeTab: View {
+@MainActor private struct DashboardKeepAwakeTab: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (SettingsTab) -> Void
 
@@ -1220,7 +1220,7 @@ private struct DashboardKeepAwakeTab: View {
 
 // MARK: - Tab 6: Storage Cleaners Tab
 
-private struct DashboardStorageTab: View {
+@MainActor private struct DashboardStorageTab: View {
     @Bindable var viewModel: MonteViewModel
 
     var body: some View {
@@ -1245,7 +1245,7 @@ private struct DashboardStorageTab: View {
 
 // MARK: - Keep-Awake Observability & Telemetry Card
 
-private struct KeepAwakeCard: View {
+@MainActor private struct KeepAwakeCard: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (() -> Void)? = nil
     private var awake: KeepAwakeService { viewModel.keepAwake }
@@ -1329,7 +1329,7 @@ private struct KeepAwakeCard: View {
 
 // MARK: - Keep-Awake Triggers & Safety Diagnostics Card
 
-private struct KeepAwakeTriggersDiagnosticsCard: View {
+@MainActor private struct KeepAwakeTriggersDiagnosticsCard: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (() -> Void)? = nil
     private var awake: KeepAwakeService { viewModel.keepAwake }
@@ -1397,7 +1397,7 @@ private struct KeepAwakeTriggersDiagnosticsCard: View {
 
 // MARK: - Mini Sparkline History Chart Component
 
-struct MiniSparklineView: View {
+@MainActor struct MiniSparklineView: View {
     let data: [Double]
     var minVal: Double = 0.0
     var maxVal: Double? = nil
@@ -1463,7 +1463,7 @@ struct MiniSparklineView: View {
 
 // MARK: - CPU & Thermal Card
 
-private struct CpuThermalCard: View {
+@MainActor private struct CpuThermalCard: View {
     let health: SystemHealth
     var onInvestigate: (() -> Void)? = nil
 
@@ -1546,7 +1546,7 @@ private struct CpuThermalCard: View {
 
 // MARK: - GPU & Graphics Accelerator Card
 
-private struct GpuHardwareCard: View {
+@MainActor private struct GpuHardwareCard: View {
     let health: SystemHealth
 
     var body: some View {
@@ -1607,7 +1607,7 @@ private struct GpuHardwareCard: View {
 
 // MARK: - Apple Silicon CPU Clusters & Core Grid Card
 
-private struct AppleSiliconCoresCard: View {
+@MainActor private struct AppleSiliconCoresCard: View {
     let health: SystemHealth
 
     private var cores: SystemStatsService.ProcessorCoreInfo {
@@ -1690,7 +1690,7 @@ private struct AppleSiliconCoresCard: View {
 
 // MARK: - Bluetooth Peripheral Battery Card
 
-private struct BluetoothAccessoriesHardwareCard: View {
+@MainActor private struct BluetoothAccessoriesHardwareCard: View {
     let health: SystemHealth
 
     var body: some View {
@@ -1764,7 +1764,7 @@ private struct BluetoothAccessoriesHardwareCard: View {
 
 // MARK: - Fans & Active Cooling Card
 
-private struct FansCoolingCard: View {
+@MainActor private struct FansCoolingCard: View {
     let health: SystemHealth
 
     var body: some View {
@@ -1816,7 +1816,7 @@ private struct FansCoolingCard: View {
 
 // MARK: - Battery Card
 
-private struct BatteryCard: View {
+@MainActor private struct BatteryCard: View {
     @Bindable var viewModel: MonteViewModel
     var onOpenSettings: (() -> Void)? = nil
     private var h: SystemHealth { viewModel.health }
@@ -1907,7 +1907,7 @@ private struct BatteryCard: View {
 
 // MARK: - Battery Health & Hardware Vitals Card
 
-private struct BatteryHealthHardwareCard: View {
+@MainActor private struct BatteryHealthHardwareCard: View {
     let health: SystemHealth
     var onOpenSettings: (() -> Void)? = nil
 
@@ -2020,7 +2020,7 @@ private struct BatteryHealthHardwareCard: View {
 
 // MARK: - SSD Health & S.M.A.R.T. Wear Card
 
-private struct SsdHealthCard: View {
+@MainActor private struct SsdHealthCard: View {
     let health: SystemHealth
 
     private var wearRatio: Double {
@@ -2122,7 +2122,7 @@ private struct SsdHealthCard: View {
 
 // MARK: - Swap & Memory Card
 
-private struct SwapMemoryCard: View {
+@MainActor private struct SwapMemoryCard: View {
     let health: SystemHealth
     var onInvestigate: (() -> Void)? = nil
 
@@ -2197,7 +2197,7 @@ private struct SwapMemoryCard: View {
 
 // MARK: - Gradle Daemons Card
 
-private struct GradleDaemonsCard: View {
+@MainActor private struct GradleDaemonsCard: View {
     var viewModel: MonteViewModel
     @State private var isStopping = false
 
@@ -2253,7 +2253,7 @@ private struct GradleDaemonsCard: View {
 
 // MARK: - Agent Storage Card
 
-private struct AgentStorageCard: View {
+@MainActor private struct AgentStorageCard: View {
     @Bindable var viewModel: MonteViewModel
     @State private var isPruning = false
 
@@ -2355,7 +2355,7 @@ private struct MacDashCard<Content: View>: View {
 
 // MARK: - Wi-Fi & Network Diagnostics Card
 
-private struct NetworkDiagnosticsCard: View {
+@MainActor private struct NetworkDiagnosticsCard: View {
     let health: SystemHealth
 
     private var wifi: WiFiDiagnostics { health.wifi }
@@ -2453,7 +2453,7 @@ private struct NetworkDiagnosticsCard: View {
 
 // MARK: - Mounted Volumes & Dev Storage Card
 
-private struct MountedVolumesCard: View {
+@MainActor private struct MountedVolumesCard: View {
     let health: SystemHealth
 
     var body: some View {
@@ -2580,7 +2580,7 @@ struct StorageInspectorItem: Identifiable {
 
 // MARK: - Embedded Storage Inspector View
 
-private struct StorageInspectorEmbeddedView: View {
+@MainActor private struct StorageInspectorEmbeddedView: View {
     @Bindable var viewModel: MonteViewModel
     @State private var logRetentionDays: Int = 7
     @State private var actionMessage: String?
@@ -2642,7 +2642,7 @@ private struct StorageInspectorEmbeddedView: View {
 
 // MARK: - Embedded Process Investigator Content
 
-private struct ProcessInvestigatorContent: View {
+@MainActor private struct ProcessInvestigatorContent: View {
     @Bindable var viewModel: MonteViewModel
     @State private var searchText = ""
     @State private var selectedTab: ProcessFilterTab = .all
@@ -2730,7 +2730,7 @@ private struct ProcessInvestigatorContent: View {
 
 // MARK: - System Requirements Banner View
 
-struct SystemRequirementsBannerView: View {
+@MainActor struct SystemRequirementsBannerView: View {
     var viewModel: MonteViewModel
     @State private var isCopied = false
     @State private var isRechecking = false
@@ -2794,7 +2794,7 @@ struct SystemRequirementsBannerView: View {
 
 // MARK: - Storage Inspector Sheet View
 
-struct StorageInspectorSheetView: View {
+@MainActor struct StorageInspectorSheetView: View {
     @Bindable var viewModel: MonteViewModel
 
     var body: some View {
@@ -2822,7 +2822,7 @@ struct StorageInspectorSheetView: View {
 
 // MARK: - Process Investigator Sheet View
 
-struct ProcessInvestigatorSheetView: View {
+@MainActor struct ProcessInvestigatorSheetView: View {
     @Bindable var viewModel: MonteViewModel
 
     var body: some View {
@@ -2850,7 +2850,7 @@ struct ProcessInvestigatorSheetView: View {
 
 // MARK: - Storage Item Card View
 
-struct StorageItemCardView: View {
+@MainActor struct StorageItemCardView: View {
     let item: StorageInspectorItem
     let isCleaning: Bool
     let isAnyCleaning: Bool
@@ -2923,7 +2923,7 @@ struct StorageItemCardView: View {
 
 // MARK: - Process Row View
 
-struct ProcessRowView: View {
+@MainActor struct ProcessRowView: View {
     let item: ProcessInvestigatorItem
     let isTerminating: Bool
     let onKill: (Bool) -> Void

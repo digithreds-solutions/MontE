@@ -62,7 +62,7 @@ struct SettingsSectionRow<Content: View>: View {
     }
 }
 
-struct SettingsSubHint: View {
+@MainActor struct SettingsSubHint: View {
     let text: String
 
     var body: some View {
@@ -81,7 +81,7 @@ struct SettingsSubHint: View {
 
 // MARK: - Root Settings View (Classic macOS Preferences Toolbar & Form Layout)
 
-struct SettingsWindowView: View {
+@MainActor struct SettingsWindowView: View {
     @Bindable var viewModel: MonteViewModel
     @State private var memoryOptResult: String?
     @State private var isFreeingRam = false
@@ -222,7 +222,7 @@ struct SettingsWindowView: View {
 
 // MARK: - Toolbar Tab Button (Icon on top, label below, rounded highlight when active)
 
-private struct SettingsToolbarTabButton: View {
+@MainActor private struct SettingsToolbarTabButton: View {
     let tab: SettingsTab
     let isSelected: Bool
     let onSelect: () -> Void
@@ -270,7 +270,7 @@ struct ActiveKeepAwakeItem: Identifiable {
     let turnOff: () -> Void
 }
 
-struct EnabledKeepAwakeSection: View {
+@MainActor struct EnabledKeepAwakeSection: View {
     @Bindable var viewModel: MonteViewModel
     var showGoToKeepAwakeButton: Bool = true
     @State private var toastMessage: String? = nil
@@ -787,7 +787,7 @@ struct EnabledKeepAwakeSection: View {
 
 // MARK: - Tab 1: General Settings
 
-struct GeneralSettingsTab: View {
+@MainActor struct GeneralSettingsTab: View {
     @Bindable var viewModel: MonteViewModel
     var onResetAll: () -> Void = {}
     @State private var showResetDialog = false
@@ -879,7 +879,7 @@ struct GeneralSettingsTab: View {
 
 // MARK: - Tab 2: Keep-Awake Settings
 
-struct KeepAwakeSettingsTab: View {
+@MainActor struct KeepAwakeSettingsTab: View {
     @Bindable var viewModel: MonteViewModel
     private var awake: KeepAwakeService { viewModel.keepAwake }
     @State private var customMinutesText: String = "45"
@@ -969,7 +969,7 @@ struct KeepAwakeSettingsTab: View {
 
 // MARK: - Keep-Awake Live Status Header Card
 
-private struct KeepAwakeLiveStatusHeaderCard: View {
+@MainActor private struct KeepAwakeLiveStatusHeaderCard: View {
     @Bindable var viewModel: MonteViewModel
     private var awake: KeepAwakeService { viewModel.keepAwake }
 
@@ -1057,7 +1057,7 @@ private struct KeepAwakeLiveStatusHeaderCard: View {
 
 // MARK: - Sub-View 1: Sessions & Durations
 
-private struct KeepAwakeSessionSubView: View {
+@MainActor private struct KeepAwakeSessionSubView: View {
     @Bindable var viewModel: MonteViewModel
     @Binding var customMinutesText: String
     @Binding var untilTimeSelection: Date
@@ -1192,7 +1192,7 @@ private struct KeepAwakeSessionSubView: View {
 
 // MARK: - Sub-View 2: Display & Sleep Policies
 
-private struct KeepAwakeDisplaySubView: View {
+@MainActor private struct KeepAwakeDisplaySubView: View {
     @Bindable var viewModel: MonteViewModel
     private var awake: KeepAwakeService { viewModel.keepAwake }
 
@@ -1272,7 +1272,7 @@ private struct KeepAwakeDisplaySubView: View {
 
 // MARK: - Sub-View 3: Dev Builds & Daemons (Granular Build Controls)
 
-private struct KeepAwakeBuildsSubView: View {
+@MainActor private struct KeepAwakeBuildsSubView: View {
     @Bindable var viewModel: MonteViewModel
     private var awake: KeepAwakeService { viewModel.keepAwake }
     private var builds: ActiveBuildStatus { awake.activeBuilds }
@@ -1404,7 +1404,7 @@ private struct KeepAwakeBuildsSubView: View {
 }
 
 // Reusable Build Trigger Row Component
-private struct BuildTriggerRow: View {
+@MainActor private struct BuildTriggerRow: View {
     let title: String
     let description: String
     let isActive: Bool
@@ -1444,7 +1444,7 @@ private struct BuildTriggerRow: View {
 
 // MARK: - Sub-View 4: Triggers & Automations
 
-private struct KeepAwakeTriggersSubView: View {
+@MainActor private struct KeepAwakeTriggersSubView: View {
     @Bindable var viewModel: MonteViewModel
     @Binding var selectedNewAppBundle: String
     private var awake: KeepAwakeService { viewModel.keepAwake }
@@ -1621,7 +1621,7 @@ private struct KeepAwakeTriggersSubView: View {
 
 // MARK: - Sub-View 5: Hardware & Battery Safety
 
-private struct KeepAwakeSafetySubView: View {
+@MainActor private struct KeepAwakeSafetySubView: View {
     @Bindable var viewModel: MonteViewModel
     private var awake: KeepAwakeService { viewModel.keepAwake }
 
@@ -1692,7 +1692,7 @@ private struct KeepAwakeSafetySubView: View {
 
 // MARK: - Tab 5: Battery & SMC Settings
 
-struct BatterySettingsTab: View {
+@MainActor struct BatterySettingsTab: View {
     @Bindable var viewModel: MonteViewModel
     private var h: SystemHealth { viewModel.health }
     private let limitOptions: [Int] = [70, 75, 80, 100]
@@ -1774,7 +1774,7 @@ struct BatterySettingsTab: View {
 
 // MARK: - Tab 6: Menu Bar & HUD Settings
 
-struct MenuBarHudSettingsTab: View {
+@MainActor struct MenuBarHudSettingsTab: View {
     @Bindable var viewModel: MonteViewModel
 
     var body: some View {
@@ -1904,7 +1904,7 @@ struct MenuBarHudSettingsTab: View {
 
 // MARK: - Tab 7: Dev Tools & Memory Settings
 
-struct DevToolsSettingsTab: View {
+@MainActor struct DevToolsSettingsTab: View {
     @Bindable var viewModel: MonteViewModel
     @Binding var memoryOptResult: String?
     @Binding var isFreeingRam: Bool
@@ -2005,7 +2005,7 @@ struct DevToolsSettingsTab: View {
 
 // MARK: - Tab 8: About Mont-E
 
-struct AboutSettingsTab: View {
+@MainActor struct AboutSettingsTab: View {
     @Bindable var viewModel: MonteViewModel
     private var h: SystemHealth { viewModel.health }
 

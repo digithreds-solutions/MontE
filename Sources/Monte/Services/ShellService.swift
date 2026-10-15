@@ -80,12 +80,12 @@ struct GradleService {
 final class StorageService: @unchecked Sendable {
 
     private static let lock = NSLock()
-    private static var isScanning = false
-    private static var lastStorageCache = StorageMetrics()
-    private static var lastStorageFetchTime: Date?
+    nonisolated(unsafe) private static var isScanning = false
+    nonisolated(unsafe) private static var lastStorageCache = StorageMetrics()
+    nonisolated(unsafe) private static var lastStorageFetchTime: Date?
 
-    private static var lastBatteryLimit: Int = 80
-    private static var lastBatteryLimitFetchTime: Date?
+    nonisolated(unsafe) private static var lastBatteryLimit: Int = 80
+    nonisolated(unsafe) private static var lastBatteryLimitFetchTime: Date?
 
     static func readMetrics(force: Bool = false) -> StorageMetrics {
         lock.lock()
