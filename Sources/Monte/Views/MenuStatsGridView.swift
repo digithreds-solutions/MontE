@@ -205,6 +205,49 @@ enum SystemShortcut {
         .padding(.top, 14)
         .padding(.bottom, 16) // Exact 16pt bottom padding to divider
         .frame(width: hud.layoutMode == .compactList ? 270 : 310)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: - Dynamic Sizing & Layout Geometry
+
+    static func activeTileCount(hud: HUDSettings, health: SystemHealth, settings: MonteSettings) -> Int {
+        var count = 0
+        if hud.showCPU { count += 1 }
+        if hud.showGPU && health.gpu.isAvailable { count += 1 }
+        if hud.showMemory { count += 1 }
+        if hud.showSwap { count += 1 }
+        if hud.showBattery { count += 1 }
+        if hud.showDiskSpace { count += 1 }
+        if hud.showTopProcess { count += 1 }
+        if hud.showBatteryHealth { count += 1 }
+        if hud.showSsdHealth { count += 1 }
+        if hud.showNetworkIO { count += 1 }
+        if hud.showFans { count += 1 }
+        if hud.showWiFi && health.wifi.isConnected { count += 1 }
+        if hud.showMountedVolumes && !health.mountedVolumes.isEmpty { count += 1 }
+        if hud.showXcodeDerivedData { count += 1 }
+        if settings.monitorGradle && hud.showGradle { count += 1 }
+        if hud.showAgentStorage { count += 1 }
+        return count
+    }
+
+    static func requiredHeight(hud: HUDSettings, health: SystemHealth, settings: MonteSettings, isAwake: Bool) -> CGFloat {
+        let count = activeTileCount(hud: hud, health: health, settings: settings)
+        let isCompact = hud.layoutMode == .compactList
+        let rows = isCompact ? CGFloat(count) : ceil(CGFloat(count) / 2.0)
+        let interSpacing = max(0, rows - 1) * (isCompact ? 8.0 : 10.0)
+        let headerHeight: CGFloat = 20.0
+        let topPadding: CGFloat = 14.0
+        let bottomPadding: CGFloat = 16.0
+        let headerSpacing: CGFloat = 12.0
+        let awakeHeight: CGFloat = isAwake ? (30.0 + 12.0) : 0.0
+        let btDevices = health.bluetoothDevices
+        let displayedBt = (hud.showBluetooth && !btDevices.isEmpty) ? min(btDevices.count, 3) : 0
+        let btHeight: CGFloat = displayedBt > 0
+            ? (14.0 + CGFloat(displayedBt * 22) + CGFloat(max(0, displayedBt - 1) * 5) + 12.0)
+            : 0.0
+        let tilesHeight = (rows * 52.0) + interSpacing
+        return topPadding + headerHeight + headerSpacing + awakeHeight + btHeight + tilesHeight + bottomPadding
     }
 
     private var batteryDotColor: Color {

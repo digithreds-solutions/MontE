@@ -161,27 +161,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         )
         let hostingView = NSHostingView(rootView: gridView)
         let hudWidth: CGFloat = hud.layoutMode == .compactList ? 270 : 310
-        let tileCount = [
-            hud.showCPU,
-            (hud.showGPU && h.gpu.isAvailable),
-            hud.showMemory,
-            hud.showSwap,
-            hud.showBattery,
-            hud.showDiskSpace,
-            hud.showTopProcess,
-            hud.showBatteryHealth,
-            hud.showNetworkIO,
-            hud.showFans,
-            hud.showXcodeDerivedData,
-            (viewModel.settings.monitorGradle && hud.showGradle),
-            hud.showAgentStorage
-        ].filter { $0 }.count
-        let rows = hud.layoutMode == .compactList ? CGFloat(tileCount) : ceil(CGFloat(tileCount) / 2.0)
-        let interSpacing = max(0, rows - 1) * 10
-        let awakeHeight: CGFloat = awake.isActive ? 42 : 0
-        let btHeight: CGFloat = (hud.showBluetooth && !h.bluetoothDevices.isEmpty) ? CGFloat(14 + min(h.bluetoothDevices.count, 3) * 22) : 0
-        let calculatedHeight = 14 + 20 + 12 + awakeHeight + btHeight + (rows * 52) + interSpacing + 16
-        hostingView.frame = NSRect(x: 0, y: 0, width: hudWidth, height: calculatedHeight)
+        let minCalculatedHeight = MenuStatsGridView.requiredHeight(
+            hud: hud,
+            health: h,
+            settings: viewModel.settings,
+            isAwake: awake.isActive
+        )
+        hostingView.layoutSubtreeIfNeeded()
+        let fittingHeight = hostingView.fittingSize.height
+        let targetHeight = max(fittingHeight, minCalculatedHeight)
+        hostingView.frame = NSRect(x: 0, y: 0, width: hudWidth, height: targetHeight)
 
         let gridItem = NSMenuItem()
         gridItem.view = hostingView
@@ -393,6 +382,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: - NSMenuDelegate
 
     func menuWillOpen(_ menu: NSMenu) {
+        let hud = viewModel.settings.hud
+        let h = viewModel.health
+        let awake = viewModel.keepAwake
+        if let firstItem = menu.items.first, let hv = firstItem.view {
+            let hudWidth: CGFloat = hud.layoutMode == .compactList ? 270 : 310
+            let minHeight = MenuStatsGridView.requiredHeight(
+                hud: hud,
+                health: h,
+                settings: viewModel.settings,
+                isAwake: awake.isActive
+            )
+            hv.layoutSubtreeIfNeeded()
+            let fitHeight = hv.fittingSize.height
+            let targetHeight = max(fitHeight, minHeight)
+            if abs(hv.frame.height - targetHeight) > 1 {
+                hv.frame = NSRect(x: 0, y: 0, width: hudWidth, height: targetHeight)
+            }
+        }
         Task { @MainActor in
             await viewModel.refresh(forceStorage: false)
             self.updateStatusItemTitle()
