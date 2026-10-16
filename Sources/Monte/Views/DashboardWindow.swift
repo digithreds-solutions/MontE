@@ -599,6 +599,8 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
             CpuThermalCard(health: viewModel.health, onInvestigate: {
                 viewModel.selectedDashboardTab = .cpu
             })
+        case .averageThermal:
+            AverageThermalCard(viewModel: viewModel)
         case .memorySwap:
             SwapMemoryCard(health: viewModel.health, onInvestigate: {
                 viewModel.selectedDashboardTab = .memory
@@ -1036,6 +1038,9 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
             // Live CPU & Thermal Card
             CpuThermalCard(health: h)
 
+            // Lifetime & Average Hardware Thermals Card
+            AverageThermalCard(viewModel: viewModel)
+
             // Apple Silicon P-Core vs E-Core Cluster Grid
             AppleSiliconCoresCard(health: h)
 
@@ -1150,6 +1155,9 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
             BatteryHealthHardwareCard(health: h, onOpenSettings: {
                 onOpenSettings(.battery)
             })
+
+            // Lifetime & Average Hardware Thermals Card (Direct Thermal Stress Impact)
+            AverageThermalCard(viewModel: viewModel)
 
             // Battery Longevity Recommendations & Direct Pass-Through Info
             VStack(alignment: .leading, spacing: 10) {
@@ -1541,6 +1549,217 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                 .padding(.top, 6)
             }
         }
+    }
+}
+
+// MARK: - Average Thermals & Lifetime History Card (Strictly On-Demand)
+
+@MainActor private struct AverageThermalCard: View {
+    @Bindable var viewModel: MonteViewModel
+
+    private var stats: LifetimeThermalStats? { viewModel.lifetimeThermalStats }
+
+    var body: some View {
+        MacDashCard(title: "Average Thermals & Lifetime History", systemIcon: "thermometer.medium", iconTint: .orange) {
+            if let stats {
+                // Header Row
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(.primary)
+
+                        Text(stats.averageTemperatureCelsius.map { String(format: "%.1f°F • Lifetime Hardware Average", ($0 * 9.0 / 5.0) + 32.0) } ?? "Lifetime Hardware Average")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(stats.healthSummary.color)
+                                .frame(width: 8, height: 8)
+                            Text(stats.healthSummary.label)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(stats.healthSummary.color)
+                        }
+
+                        Text("On-Demand PMU Query")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                // 4 Metric Callout Boxes
+                HStack(spacing: 8) {
+                    metricCallout(
+                        title: "Lifetime Avg",
+                        value: stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—",
+                        color: stats.healthSummary.color
+                    )
+                    metricCallout(
+                        title: "Peak Recorded",
+                        value: stats.maxTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—",
+                        color: (stats.maxTemperatureCelsius ?? 0) > 50.0 ? .red : .orange
+                    )
+                    metricCallout(
+                        title: "Min Recorded",
+                        value: stats.minTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—",
+                        color: .blue
+                    )
+                    metricCallout(
+                        title: "Live Probe",
+                        value: stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—",
+                        color: .primary
+                    )
+                }
+                .padding(.top, 10)
+
+                Divider().padding(.vertical, 8)
+
+                // Detailed Hardware PMU Telemetry Grid
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
+                    GridRow {
+                        Text("Operating Log Time:").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text(stats.totalOperatingHours.map { "\($0) hours (\(String(format: "%.1f", Double($0) / 24.0)) days)" } ?? "—")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    }
+                    GridRow {
+                        Text("Gas Gauge Samples:").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text(stats.temperatureSamplesCount.map { "\($0) sensor readings" } ?? "—")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    }
+                    GridRow {
+                        Text("Pack Voltage Window:").font(.system(size: 11)).foregroundStyle(.secondary)
+                        if let minV = stats.minPackVoltageVolts, let maxV = stats.maxPackVoltageVolts {
+                            Text(String(format: "%.3f V – %.3f V", minV, maxV))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        } else {
+                            Text("—").font(.system(size: 11))
+                        }
+                    }
+                    GridRow {
+                        Text("Max Charge / Discharge:").font(.system(size: 11)).foregroundStyle(.secondary)
+                        if let cA = stats.maxChargeCurrentAmps, let dA = stats.maxDischargeCurrentAmps {
+                            Text(String(format: "+%.2f A / -%.2f A", cA, dA))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        } else {
+                            Text("—").font(.system(size: 11))
+                        }
+                    }
+                }
+
+                Divider().padding(.vertical, 8)
+
+                // Footer Actions
+                HStack {
+                    if let date = stats.lastAnalyzedAt {
+                        Text("Analyzed \(date.formatted(date: .omitted, time: .standard)) (Zero background overhead)")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        copyThermalDiagnostics(stats)
+                    } label: {
+                        Label("Copy Telemetry", systemImage: "doc.on.doc")
+                            .font(.system(size: 11))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+
+                    Button {
+                        Task { await viewModel.analyzeAverageThermals() }
+                    } label: {
+                        if viewModel.isAnalyzingThermals {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("Re-analyze", systemImage: "arrow.clockwise")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(viewModel.isAnalyzingThermals)
+                }
+
+            } else {
+                // Unanalyzed Initial State
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.orange)
+                            .padding(.top, 2)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Hardware Gas Gauge Lifetime Telemetry")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.primary)
+
+                            Text("Queries the AppleSmartBattery Power Management Unit (PMU) for lifetime temperature averages, operating extremes, sensor samples count, and voltage limits. To keep Mont-E ultra-light, this check runs exclusively on-demand.")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    HStack {
+                        Spacer()
+
+                        Button {
+                            Task { await viewModel.analyzeAverageThermals() }
+                        } label: {
+                            if viewModel.isAnalyzingThermals {
+                                HStack(spacing: 6) {
+                                    ProgressView().controlSize(.small)
+                                    Text("Querying Hardware PMU…")
+                                        .font(.system(size: 12, weight: .semibold))
+                                }
+                            } else {
+                                Label("Inspect Average Thermals", systemImage: "thermometer.medium")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                        .disabled(viewModel.isAnalyzingThermals)
+                    }
+                }
+            }
+        }
+    }
+
+    private func metricCallout(title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.system(size: 9.5, weight: .medium))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    private func copyThermalDiagnostics(_ stats: LifetimeThermalStats) {
+        NSPasteboard.general.clearContents()
+        let avg = stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
+        let maxT = stats.maxTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
+        let minT = stats.minTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
+        let cur = stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
+        let hrs = stats.totalOperatingHours.map(String.init) ?? "N/A"
+        let samples = stats.temperatureSamplesCount.map(String.init) ?? "N/A"
+        let text = "Mont-E Lifetime Thermal Diagnostics:\n• Lifetime Average: \(avg)\n• Peak Temperature: \(maxT)\n• Min Temperature: \(minT)\n• Live PMU Sensor: \(cur)\n• Operating Hours: \(hrs)\n• Telemetry Samples: \(samples)\n• Health Assessment: \(stats.healthSummary.label)"
+        NSPasteboard.general.setString(text, forType: .string)
     }
 }
 
@@ -2413,13 +2632,18 @@ private struct MacDashCard<Content: View>: View {
             if !health.networkHistory.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack {
-                        Text("Download Activity")
+                        Text("Bandwidth Activity")
                             .font(.system(size: 9.5, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text(String(format: "↓ %.1f KB/s • ↑ %.1f KB/s", health.networkDownloadKbSec, health.networkUploadKbSec))
-                            .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 6) {
+                            Text(String(format: "↓ %.1f KB/s • ↑ %.1f KB/s", health.networkDownloadKbSec, health.networkUploadKbSec))
+                                .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(.primary)
+                            Text(String(format: "(Avg: %.1f KB/s)", health.averageDownloadKbSec))
+                                .font(.system(size: 9.0, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     MiniSparklineView(data: health.networkHistory, tintColor: .cyan, height: 24)
                 }

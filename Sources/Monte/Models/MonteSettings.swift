@@ -103,6 +103,7 @@ public enum DashboardOverviewCardId: String, Codable, CaseIterable, Identifiable
     case batteryHealth
     case ssdHealth
     case cpuThermal
+    case averageThermal
     case memorySwap
     case gradleDaemons
     case agentStorage
@@ -123,6 +124,7 @@ public enum DashboardOverviewCardId: String, Codable, CaseIterable, Identifiable
         case .batteryHealth: return "Battery Health & Hardware Vitals"
         case .ssdHealth: return "SSD Health & S.M.A.R.T. Wear"
         case .cpuThermal: return "CPU & Thermal Health"
+        case .averageThermal: return "Average Thermals & Lifetime History"
         case .memorySwap: return "Memory & Swap"
         case .gradleDaemons: return "Gradle Daemons"
         case .agentStorage: return "Dev Storage Cleaners"
@@ -143,6 +145,7 @@ public enum DashboardOverviewCardId: String, Codable, CaseIterable, Identifiable
         case .batteryHealth: return "Cycles, capacity, wear level & temperature"
         case .ssdHealth: return "TBW wear, read/write ops & endurance"
         case .cpuThermal: return "CPU % usage & Apple Silicon thermal zone"
+        case .averageThermal: return "Historical PMU gas gauge telemetry, lifetime average & temperature bounds"
         case .memorySwap: return "Unified RAM pressure & swap risk index"
         case .gradleDaemons: return "Active Kotlin/Android daemon processes"
         case .agentStorage: return "AI brain caches & developer artifacts"
@@ -163,6 +166,7 @@ public enum DashboardOverviewCardId: String, Codable, CaseIterable, Identifiable
         case .batteryHealth: return "heart.text.square"
         case .ssdHealth: return "internaldrive"
         case .cpuThermal: return "cpu"
+        case .averageThermal: return "thermometer.medium"
         case .memorySwap: return "memorychip"
         case .gradleDaemons: return "hammer"
         case .agentStorage: return "folder.badge.gearshape"
@@ -193,6 +197,7 @@ public struct DashboardOverviewCardConfig: Codable, Equatable, Identifiable {
             DashboardOverviewCardConfig(id: .batteryHealth, isVisible: true),
             DashboardOverviewCardConfig(id: .ssdHealth, isVisible: true),
             DashboardOverviewCardConfig(id: .cpuThermal, isVisible: true),
+            DashboardOverviewCardConfig(id: .averageThermal, isVisible: true),
             DashboardOverviewCardConfig(id: .memorySwap, isVisible: true),
             DashboardOverviewCardConfig(id: .gradleDaemons, isVisible: true),
             DashboardOverviewCardConfig(id: .agentStorage, isVisible: true),
@@ -293,12 +298,12 @@ public struct DashboardOverviewSettings: Codable, Equatable {
         case .allCards:
             showAll()
         case .siliconHardware:
-            let allowed: Set<DashboardOverviewCardId> = [.cpuThermal, .cores, .gpu, .fans, .memorySwap, .ssdHealth]
+            let allowed: Set<DashboardOverviewCardId> = [.cpuThermal, .averageThermal, .cores, .gpu, .fans, .memorySwap, .ssdHealth]
             for idx in cards.indices {
                 cards[idx].isVisible = allowed.contains(cards[idx].id)
             }
         case .batteryPower:
-            let allowed: Set<DashboardOverviewCardId> = [.battery, .batteryHealth, .keepAwake, .keepAwakeDiagnostics]
+            let allowed: Set<DashboardOverviewCardId> = [.battery, .batteryHealth, .averageThermal, .keepAwake, .keepAwakeDiagnostics]
             for idx in cards.indices {
                 cards[idx].isVisible = allowed.contains(cards[idx].id)
             }

@@ -199,6 +199,66 @@ struct BatteryService {
         readSmartBatteryProps().temperatureCelsius
     }
 
+    /// On-demand deep PMU gas gauge query for lifetime temperature registers and thermal history.
+    /// Executed ONLY on-demand to guarantee zero background polling or CPU overhead.
+    static func readLifetimeThermalStats() -> LifetimeThermalStats {
+        let matching = IOServiceMatching("AppleSmartBattery")
+        let entry = IOServiceGetMatchingService(kIOMainPortDefault, matching)
+        guard entry != 0 else {
+            return LifetimeThermalStats(lastAnalyzedAt: Date())
+        }
+        defer { IOObjectRelease(entry) }
+
+        var properties: Unmanaged<CFMutableDictionary>?
+        guard IORegistryEntryCreateCFProperties(entry, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+              let props = properties?.takeRetainedValue() as? [String: Any] else {
+            return LifetimeThermalStats(lastAnalyzedAt: Date())
+        }
+
+        let currentTemp: Double? = {
+            guard let rawTemp = (props["Temperature"] as? NSNumber)?.doubleValue else { return nil }
+            if rawTemp > 1000.0 {
+                return (rawTemp / 10.0) - 273.15
+            } else if rawTemp > 100.0 {
+                return rawTemp / 10.0
+            } else {
+                return rawTemp
+            }
+        }()
+
+        guard let bData = props["BatteryData"] as? [String: Any],
+              let lt = bData["LifetimeData"] as? [String: Any] else {
+            return LifetimeThermalStats(
+                currentTemperatureCelsius: currentTemp,
+                lastAnalyzedAt: Date()
+            )
+        }
+
+        let avg = (lt["AverageTemperature"] as? NSNumber).map { $0.doubleValue / 10.0 }
+        let maxT = (lt["MaximumTemperature"] as? NSNumber)?.doubleValue
+        let minT = (lt["MinimumTemperature"] as? NSNumber)?.doubleValue
+        let hours = (lt["TotalOperatingTime"] as? NSNumber)?.intValue
+        let samples = (lt["TemperatureSamples"] as? NSNumber)?.intValue
+        let maxV = (lt["MaximumPackVoltage"] as? NSNumber).map { $0.doubleValue / 1000.0 }
+        let minV = (lt["MinimumPackVoltage"] as? NSNumber).map { $0.doubleValue / 1000.0 }
+        let maxChargeA = (lt["MaximumChargeCurrent"] as? NSNumber).map { $0.doubleValue / 1000.0 }
+        let maxDischargeA = (lt["MaximumDischargeCurrent"] as? NSNumber).map { abs($0.doubleValue) / 1000.0 }
+
+        return LifetimeThermalStats(
+            averageTemperatureCelsius: avg,
+            maxTemperatureCelsius: maxT,
+            minTemperatureCelsius: minT,
+            currentTemperatureCelsius: currentTemp,
+            totalOperatingHours: hours,
+            temperatureSamplesCount: samples,
+            maxPackVoltageVolts: maxV,
+            minPackVoltageVolts: minV,
+            maxChargeCurrentAmps: maxChargeA,
+            maxDischargeCurrentAmps: maxDischargeA,
+            lastAnalyzedAt: Date()
+        )
+    }
+
     /// Registers a native run loop callback for instant power source changes (unplugging, battery % drop, etc.)
     static func registerPowerChangeCallback(_ callback: @escaping () -> Void) -> CFRunLoopSource? {
         let context = UnsafeMutableRawPointer(Unmanaged.passRetained(PowerCallbackHolder(callback: callback)).toOpaque())

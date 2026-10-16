@@ -296,6 +296,21 @@ struct SystemHealth {
     var gpuHistory: [Double] = []
     var ramHistory: [Double] = []
     var networkHistory: [Double] = []
+    var networkUploadHistory: [Double] = []
+
+    public var averageDownloadKbSec: Double {
+        guard !networkHistory.isEmpty else { return 0 }
+        return networkHistory.reduce(0, +) / Double(networkHistory.count)
+    }
+
+    public var averageUploadKbSec: Double {
+        guard !networkUploadHistory.isEmpty else { return 0 }
+        return networkUploadHistory.reduce(0, +) / Double(networkUploadHistory.count)
+    }
+
+    public var averageTotalBandwidthKbSec: Double {
+        averageDownloadKbSec + averageUploadKbSec
+    }
 
     var ramPercent: Double {
         (ramUsedGb / max(ramTotalGb, 1.0)) * 100.0
@@ -341,4 +356,61 @@ struct SystemHealth {
 
     var storage: StorageMetrics = StorageMetrics()
     var daemons: [GradleDaemonInfo] = []
+}
+
+// MARK: - Lifetime / On-Demand Average Thermal Analytics
+
+public struct LifetimeThermalStats: Equatable, Codable, Sendable {
+    public var averageTemperatureCelsius: Double?
+    public var maxTemperatureCelsius: Double?
+    public var minTemperatureCelsius: Double?
+    public var currentTemperatureCelsius: Double?
+    public var totalOperatingHours: Int?
+    public var temperatureSamplesCount: Int?
+    public var maxPackVoltageVolts: Double?
+    public var minPackVoltageVolts: Double?
+    public var maxChargeCurrentAmps: Double?
+    public var maxDischargeCurrentAmps: Double?
+    public var lastAnalyzedAt: Date?
+
+    public init(
+        averageTemperatureCelsius: Double? = nil,
+        maxTemperatureCelsius: Double? = nil,
+        minTemperatureCelsius: Double? = nil,
+        currentTemperatureCelsius: Double? = nil,
+        totalOperatingHours: Int? = nil,
+        temperatureSamplesCount: Int? = nil,
+        maxPackVoltageVolts: Double? = nil,
+        minPackVoltageVolts: Double? = nil,
+        maxChargeCurrentAmps: Double? = nil,
+        maxDischargeCurrentAmps: Double? = nil,
+        lastAnalyzedAt: Date? = nil
+    ) {
+        self.averageTemperatureCelsius = averageTemperatureCelsius
+        self.maxTemperatureCelsius = maxTemperatureCelsius
+        self.minTemperatureCelsius = minTemperatureCelsius
+        self.currentTemperatureCelsius = currentTemperatureCelsius
+        self.totalOperatingHours = totalOperatingHours
+        self.temperatureSamplesCount = temperatureSamplesCount
+        self.maxPackVoltageVolts = maxPackVoltageVolts
+        self.minPackVoltageVolts = minPackVoltageVolts
+        self.maxChargeCurrentAmps = maxChargeCurrentAmps
+        self.maxDischargeCurrentAmps = maxDischargeCurrentAmps
+        self.lastAnalyzedAt = lastAnalyzedAt
+    }
+
+    public var healthSummary: (label: String, color: Color) {
+        guard let avg = averageTemperatureCelsius else {
+            return ("Unavailable", .secondary)
+        }
+        if avg < 30.0 {
+            return ("Optimal / Cool (Low Stress)", .green)
+        } else if avg < 35.0 {
+            return ("Normal Workload", .mint)
+        } else if avg < 40.0 {
+            return ("Warm / Moderate Stress", .orange)
+        } else {
+            return ("Elevated Heat Exposure", .red)
+        }
+    }
 }

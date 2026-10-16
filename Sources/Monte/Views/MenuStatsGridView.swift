@@ -221,9 +221,8 @@ enum SystemShortcut {
         if hud.showTopProcess { count += 1 }
         if hud.showBatteryHealth { count += 1 }
         if hud.showSsdHealth { count += 1 }
-        if hud.showNetworkIO { count += 1 }
+        if (hud.showWiFi || hud.showNetworkIO) { count += 1 }
         if hud.showFans { count += 1 }
-        if hud.showWiFi && health.wifi.isConnected { count += 1 }
         if hud.showMountedVolumes && !health.mountedVolumes.isEmpty { count += 1 }
         if hud.showXcodeDerivedData { count += 1 }
         if settings.monitorGradle && hud.showGradle { count += 1 }
@@ -561,23 +560,27 @@ enum SystemShortcut {
             }
         }
 
-        // 8. Network I/O Bandwidth (Clickable to open Network Settings)
-        if hud.showNetworkIO {
+        // 8. Smart Network & Wi-Fi Speed Tile (Live Bandwidth, Rolling Average & Red/Amber/Green Link Health)
+        if hud.showWiFi || hud.showNetworkIO {
             Button {
-                SystemShortcut.openNetworkSettings()
+                onOpenDashboard()
+                viewModel.selectedDashboardTab = .overview
             } label: {
-                StatGridCell(
-                    symbolName: "network",
-                    title: "Network I/O",
-                    value: "↓ \(formatBandwidth(h.networkDownloadKbSec))",
-                    detail: "↑ \(formatBandwidth(h.networkUploadKbSec))"
-                )
+                SmartNetworkGridCell(health: h)
             }
             .buttonStyle(.plain)
-            .help("Click to open macOS Network Settings")
+            .help(networkTileHelpText(health: h))
             .contextMenu {
+                Button("Open Dashboard Network Tab") {
+                    onOpenDashboard()
+                    viewModel.selectedDashboardTab = .overview
+                }
                 Button("Open macOS Network Settings...") { SystemShortcut.openNetworkSettings() }
                 Button("Launch Activity Monitor (Network)...") { SystemShortcut.openActivityMonitor() }
+                Divider()
+                Button("Copy Network Diagnostics") {
+                    copyNetworkDiagnostics(health: h)
+                }
             }
         }
 
@@ -596,27 +599,6 @@ enum SystemShortcut {
             }
             .buttonStyle(.plain)
             .help("Click to view Fan RPM & Cooling status in Dashboard")
-        }
-
-        // 8c. Wi-Fi & Link Diagnostics
-        if hud.showWiFi && h.wifi.isConnected {
-            Button {
-                onOpenDashboard()
-                viewModel.selectedDashboardTab = .overview
-            } label: {
-                StatGridCell(
-                    symbolName: "wifi",
-                    title: "Wi-Fi Link",
-                    value: "\(h.wifi.rssi) dBm",
-                    detail: "\(h.wifi.ssid)"
-                )
-            }
-            .buttonStyle(.plain)
-            .help("Wi-Fi: \(h.wifi.ssid) • \(h.wifi.rssi) dBm (\(h.wifi.qualityLabel)) on \(h.wifi.interfaceName)")
-            .contextMenu {
-                Button("Open macOS Network Settings...") { SystemShortcut.openNetworkSettings() }
-                Button("Open Dashboard...") { onOpenDashboard() }
-            }
         }
 
         // 8d. Mounted External Volumes
@@ -751,6 +733,26 @@ enum SystemShortcut {
             return String(format: "%.0f KB/s", kbSec)
         }
     }
+
+    private func networkTileHelpText(health: SystemHealth) -> String {
+        let wifi = health.wifi
+        let name = wifi.isConnected ? (wifi.ssid.isEmpty ? "Wi-Fi" : wifi.ssid) : "Wired / Offline"
+        let status = wifi.isConnected ? "\(wifi.qualityLabel) (\(wifi.rssi) dBm)" : "Offline"
+        let live = "Live: ↓ \(formatBandwidth(health.networkDownloadKbSec)), ↑ \(formatBandwidth(health.networkUploadKbSec))"
+        let avg = "Avg: ↓ \(formatBandwidth(health.averageDownloadKbSec)), ↑ \(formatBandwidth(health.averageUploadKbSec))"
+        return "\(name) • \(status)\n\(live)\n\(avg)\nClick to open Dashboard"
+    }
+
+    private func copyNetworkDiagnostics(health: SystemHealth) {
+        NSPasteboard.general.clearContents()
+        let wifi = health.wifi
+        let name = wifi.isConnected ? wifi.ssid : "Wired/Offline"
+        let ip = wifi.localIPv4.isEmpty ? "N/A" : wifi.localIPv4
+        let rssi = wifi.isConnected ? "\(wifi.rssi) dBm (\(wifi.qualityLabel))" : "N/A"
+        let live = "Live: ↓ \(formatBandwidth(health.networkDownloadKbSec)), ↑ \(formatBandwidth(health.networkUploadKbSec))"
+        let avg = "Avg: ↓ \(formatBandwidth(health.averageDownloadKbSec)), ↑ \(formatBandwidth(health.averageUploadKbSec))"
+        NSPasteboard.general.setString("Network: \(name), IP: \(ip), Signal: \(rssi), \(live), \(avg)", forType: .string)
+    }
 }
 
 // MARK: - Reusable Clean Monochrome Stat Cell (Consistent 52pt Height)
@@ -780,6 +782,166 @@ enum SystemShortcut {
                     .foregroundStyle(Color.secondary.opacity(0.7))
                     .lineLimit(1)
             }
+            Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - Smart Network & Wi-Fi Speed Grid Cell (Live, Average & RAG Status)
+
+@MainActor private struct SmartNetworkGridCell: View {
+    let health: SystemHealth
+
+    private var wifi: WiFiDiagnostics { health.wifi }
+
+    // RAG Status Color (Link / Connectivity)
+    private var linkStatusColor: Color {
+        guard wifi.isConnected else {
+            if health.networkDownloadKbSec > 10.0 || health.networkUploadKbSec > 10.0 {
+                return .green // Active Wired Link
+            }
+            return .red // Offline
+        }
+        if wifi.rssi >= -65 {
+            return .green // Strong / Good
+        } else if wifi.rssi >= -78 {
+            return .orange // Fair / Amber
+        } else {
+            return .red // Weak
+        }
+    }
+
+    private var linkStatusText: String {
+        guard wifi.isConnected else {
+            if health.networkDownloadKbSec > 10.0 || health.networkUploadKbSec > 10.0 {
+                return "Wired"
+            }
+            return "Offline"
+        }
+        if wifi.rssi >= -65 {
+            return "Good"
+        } else if wifi.rssi >= -78 {
+            return "Fair"
+        } else {
+            return "Weak"
+        }
+    }
+
+    // RAG Speed Color (Download Throughput)
+    private var downloadColor: Color {
+        guard wifi.isConnected || health.networkDownloadKbSec > 0.1 else { return .red }
+        if health.networkDownloadKbSec >= 1024.0 { // >= 1 MB/s
+            return .green
+        } else if health.networkDownloadKbSec >= 100.0 { // 100 KB/s - 1 MB/s
+            return .orange // Amber
+        } else {
+            return .secondary // Idle
+        }
+    }
+
+    // RAG Speed Color (Upload Throughput)
+    private var uploadColor: Color {
+        guard wifi.isConnected || health.networkUploadKbSec > 0.1 else { return .red }
+        if health.networkUploadKbSec >= 512.0 { // >= 512 KB/s
+            return .green
+        } else if health.networkUploadKbSec >= 50.0 { // 50 KB/s - 512 KB/s
+            return .orange // Amber
+        } else {
+            return .secondary // Idle
+        }
+    }
+
+    // RAG Color for Rolling Average
+    private var averageColor: Color {
+        let avg = health.averageDownloadKbSec
+        guard wifi.isConnected || avg > 0.1 else { return .red }
+        if avg >= 1024.0 {
+            return .green
+        } else if avg >= 100.0 {
+            return .orange // Amber
+        } else {
+            return .secondary
+        }
+    }
+
+    private func formatSpeed(_ kbSec: Double) -> String {
+        if kbSec >= 1024.0 {
+            return String(format: "%.1f MB/s", kbSec / 1024.0)
+        } else {
+            return String(format: "%.0f KB/s", kbSec)
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ZStack(alignment: .bottomTrailing) {
+                Image(systemName: wifi.isConnected ? "wifi" : "network")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16)
+
+                Circle()
+                    .fill(linkStatusColor)
+                    .frame(width: 5.5, height: 5.5)
+                    .offset(x: 2, y: 2)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                // Line 1: Title & Network Name
+                Text(wifi.isConnected ? (wifi.ssid.isEmpty ? "Wi-Fi" : wifi.ssid) : (linkStatusText == "Wired" ? "Wired Network" : "Network"))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                // Line 2: Live Speeds with RAG colors
+                HStack(spacing: 6) {
+                    HStack(spacing: 2) {
+                        Text("↓")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(downloadColor)
+                        Text(formatSpeed(health.networkDownloadKbSec))
+                            .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(downloadColor)
+                    }
+
+                    HStack(spacing: 2) {
+                        Text("↑")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(uploadColor)
+                        Text(formatSpeed(health.networkUploadKbSec))
+                            .font(.system(size: 10.5, weight: .medium, design: .monospaced))
+                            .foregroundStyle(uploadColor)
+                    }
+                }
+
+                // Line 3: Average Throughput & Link Status / dBm
+                HStack(spacing: 3) {
+                    Text("Avg: \(formatSpeed(health.averageDownloadKbSec))")
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundStyle(averageColor)
+
+                    Text("•")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.secondary.opacity(0.6))
+
+                    Text(linkStatusText)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(linkStatusColor)
+
+                    if wifi.isConnected && wifi.rssi != 0 {
+                        Text("(\(wifi.rssi)dBm)")
+                            .font(.system(size: 8.5))
+                            .foregroundStyle(.secondary.opacity(0.7))
+                    }
+                }
+                .lineLimit(1)
+            }
+
             Spacer()
         }
         .padding(.horizontal, 10)

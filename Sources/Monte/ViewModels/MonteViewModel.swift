@@ -29,6 +29,8 @@ final class MonteViewModel {
     var cleaningProgress: CleaningProgressState = CleaningProgressState()
     var investigatorProcesses: [ProcessInvestigatorItem] = []
     var isScanningProcesses: Bool = false
+    var lifetimeThermalStats: LifetimeThermalStats? = nil
+    var isAnalyzingThermals: Bool = false
 
     init() {
         self.settings = MonteSettingsStore.shared.settings
@@ -90,7 +92,8 @@ final class MonteViewModel {
             cpuHistory: [cpu],
             gpuHistory: [gpu.deviceUtilizationPercent],
             ramHistory: [(ram.usedGb / max(ram.totalGb, 1.0)) * 100.0],
-            networkHistory: [net.downloadKbSec]
+            networkHistory: [net.downloadKbSec],
+            networkUploadHistory: [net.uploadKbSec]
         )
 
         WatchdogAlertService.shared.requestNotificationPermissions()
@@ -231,6 +234,9 @@ final class MonteViewModel {
         health.networkHistory.append(net.downloadKbSec)
         if health.networkHistory.count > 30 { health.networkHistory.removeFirst() }
 
+        health.networkUploadHistory.append(net.uploadKbSec)
+        if health.networkUploadHistory.count > 30 { health.networkUploadHistory.removeFirst() }
+
         // Evaluate proactive watchdog alerts
         WatchdogAlertService.shared.evaluate(health: health, settings: settings.watchdog)
 
@@ -314,6 +320,16 @@ final class MonteViewModel {
 
     func installBatteryTool() {
         StorageService.installBatteryTool()
+    }
+
+    /// Queries lifetime PMU gas gauge thermal statistics strictly on-demand.
+    func analyzeAverageThermals() async {
+        isAnalyzingThermals = true
+        let stats = await Task.detached(priority: .utility) {
+            BatteryService.readLifetimeThermalStats()
+        }.value
+        self.lifetimeThermalStats = stats
+        self.isAnalyzingThermals = false
     }
 
     /// Returns daemon count that was stopped.
