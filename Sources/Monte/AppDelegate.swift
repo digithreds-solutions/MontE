@@ -167,7 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         )
         let hostingView = NSHostingView(rootView: gridView)
-        let hudWidth: CGFloat = hud.layoutMode == .compactList ? 270 : 310
+        let hudWidth: CGFloat = MenuStatsGridView.hudWidth(for: hud.layoutMode)
         let minCalculatedHeight = MenuStatsGridView.requiredHeight(
             hud: hud,
             health: h,
@@ -393,7 +393,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let h = viewModel.health
         let awake = viewModel.keepAwake
         if let firstItem = menu.items.first, let hv = firstItem.view {
-            let hudWidth: CGFloat = hud.layoutMode == .compactList ? 270 : 310
+            let hudWidth: CGFloat = MenuStatsGridView.hudWidth(for: hud.layoutMode)
             let minHeight = MenuStatsGridView.requiredHeight(
                 hud: hud,
                 health: h,

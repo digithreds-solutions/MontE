@@ -190,6 +190,14 @@ enum SystemShortcut {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
 
+            // Full-Width Smart Network Cockpit Strip
+            if hud.showWiFi || hud.showNetworkIO {
+                NetworkCockpitStrip(health: h, onOpenDashboard: {
+                    onOpenDashboard()
+                    viewModel.selectedDashboardTab = .overview
+                })
+            }
+
             // Aerated Tiles Layout: Grid vs Compact List
             if hud.layoutMode == .compactList {
                 VStack(spacing: 8) {
@@ -204,11 +212,15 @@ enum SystemShortcut {
         .padding(.horizontal, 16)
         .padding(.top, 14)
         .padding(.bottom, 16) // Exact 16pt bottom padding to divider
-        .frame(width: hud.layoutMode == .compactList ? 270 : 310)
+        .frame(width: Self.hudWidth(for: hud.layoutMode))
         .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Dynamic Sizing & Layout Geometry
+
+    static func hudWidth(for mode: HUDLayoutMode) -> CGFloat {
+        mode == .compactList ? 300 : 356
+    }
 
     static func activeTileCount(hud: HUDSettings, health: SystemHealth, settings: MonteSettings) -> Int {
         var count = 0
@@ -221,7 +233,6 @@ enum SystemShortcut {
         if hud.showTopProcess { count += 1 }
         if hud.showBatteryHealth { count += 1 }
         if hud.showSsdHealth { count += 1 }
-        if (hud.showWiFi || hud.showNetworkIO) { count += 1 }
         if hud.showFans { count += 1 }
         if hud.showMountedVolumes && !health.mountedVolumes.isEmpty { count += 1 }
         if hud.showXcodeDerivedData { count += 1 }
@@ -234,6 +245,7 @@ enum SystemShortcut {
         let count = activeTileCount(hud: hud, health: health, settings: settings)
         let isCompact = hud.layoutMode == .compactList
         let rows = isCompact ? CGFloat(count) : ceil(CGFloat(count) / 2.0)
+        let tileHeight: CGFloat = 56.0
         let interSpacing = max(0, rows - 1) * (isCompact ? 8.0 : 10.0)
         let headerHeight: CGFloat = 20.0
         let topPadding: CGFloat = 14.0
@@ -245,8 +257,10 @@ enum SystemShortcut {
         let btHeight: CGFloat = displayedBt > 0
             ? (14.0 + CGFloat(displayedBt * 22) + CGFloat(max(0, displayedBt - 1) * 5) + 12.0)
             : 0.0
-        let tilesHeight = (rows * 52.0) + interSpacing
-        return topPadding + headerHeight + headerSpacing + awakeHeight + btHeight + tilesHeight + bottomPadding
+        let showNet = hud.showWiFi || hud.showNetworkIO
+        let netHeight: CGFloat = showNet ? (48.0 + 12.0) : 0.0
+        let tilesHeight = (rows * tileHeight) + interSpacing
+        return topPadding + headerHeight + headerSpacing + awakeHeight + btHeight + netHeight + tilesHeight + bottomPadding
     }
 
     private var batteryDotColor: Color {
@@ -560,30 +574,6 @@ enum SystemShortcut {
             }
         }
 
-        // 8. Smart Network & Wi-Fi Speed Tile (Live Bandwidth, Rolling Average & Red/Amber/Green Link Health)
-        if hud.showWiFi || hud.showNetworkIO {
-            Button {
-                onOpenDashboard()
-                viewModel.selectedDashboardTab = .overview
-            } label: {
-                SmartNetworkGridCell(health: h)
-            }
-            .buttonStyle(.plain)
-            .help(networkTileHelpText(health: h))
-            .contextMenu {
-                Button("Open Dashboard Network Tab") {
-                    onOpenDashboard()
-                    viewModel.selectedDashboardTab = .overview
-                }
-                Button("Open macOS Network Settings...") { SystemShortcut.openNetworkSettings() }
-                Button("Launch Activity Monitor (Network)...") { SystemShortcut.openActivityMonitor() }
-                Divider()
-                Button("Copy Network Diagnostics") {
-                    copyNetworkDiagnostics(health: h)
-                }
-            }
-        }
-
         // 8b. Cooling & Fans
         if hud.showFans {
             Button {
@@ -755,7 +745,7 @@ enum SystemShortcut {
     }
 }
 
-// MARK: - Reusable Clean Monochrome Stat Cell (Consistent 52pt Height)
+// MARK: - Reusable Clean Monochrome Stat Cell (Consistent 56pt Height & Enhanced Readability)
 
 @MainActor private struct StatGridCell: View {
     let symbolName: String
@@ -764,38 +754,41 @@ enum SystemShortcut {
     let detail: String
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 9) {
             Image(systemName: symbolName)
-                .font(.system(size: 13))
+                .font(.system(size: 14))
                 .foregroundStyle(.secondary)
-                .frame(width: 16)
+                .frame(width: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 2.5) {
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
                 Text(value)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 13.5, weight: .semibold))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
                 Text(detail)
-                    .font(.system(size: 9))
-                    .foregroundStyle(Color.secondary.opacity(0.7))
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.secondary.opacity(0.75))
                     .lineLimit(1)
             }
             Spacer()
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 11)
         .padding(.vertical, 7)
-        .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
-// MARK: - Smart Network & Wi-Fi Speed Grid Cell (Live, Average & RAG Status)
+// MARK: - Full-Width Smart Network Cockpit Strip (Live, Average & RAG Status)
 
-@MainActor private struct SmartNetworkGridCell: View {
+@MainActor private struct NetworkCockpitStrip: View {
     let health: SystemHealth
+    let onOpenDashboard: () -> Void
 
     private var wifi: WiFiDiagnostics { health.wifi }
 
@@ -808,62 +801,73 @@ enum SystemShortcut {
             return .red // Offline
         }
         if wifi.rssi >= -65 {
-            return .green // Strong / Good
+            return .green // Strong / Good Link
         } else if wifi.rssi >= -78 {
-            return .orange // Fair / Amber
+            return .orange // Fair Link
         } else {
-            return .red // Weak
+            return .red // Weak Link
         }
     }
 
-    private var linkStatusText: String {
+    private var linkDisplayName: String {
         guard wifi.isConnected else {
             if health.networkDownloadKbSec > 10.0 || health.networkUploadKbSec > 10.0 {
-                return "Wired"
+                return "Wired Ethernet"
             }
-            return "Offline"
+            return "Network Disconnected"
         }
-        if wifi.rssi >= -65 {
-            return "Good"
-        } else if wifi.rssi >= -78 {
-            return "Fair"
+        if wifi.ssid.isEmpty || wifi.ssid == "Wi-Fi (Connected)" {
+            return "Wi-Fi"
+        }
+        return wifi.ssid
+    }
+
+    private var linkQualityDescription: String {
+        guard wifi.isConnected else {
+            if health.networkDownloadKbSec > 10.0 || health.networkUploadKbSec > 10.0 {
+                return "Gigabit Link Active"
+            }
+            return "No Internet Connection"
+        }
+        if wifi.rssi != 0 {
+            return "\(wifi.qualityLabel) Link (\(wifi.rssi) dBm)"
         } else {
-            return "Weak"
+            return "\(wifi.qualityLabel) Link"
         }
     }
 
-    // RAG Speed Color (Download Throughput)
+    // RAG Download Speed Color
     private var downloadColor: Color {
         guard wifi.isConnected || health.networkDownloadKbSec > 0.1 else { return .red }
-        if health.networkDownloadKbSec >= 1024.0 { // >= 1 MB/s
+        if health.networkDownloadKbSec >= 1024.0 {
             return .green
-        } else if health.networkDownloadKbSec >= 100.0 { // 100 KB/s - 1 MB/s
-            return .orange // Amber
+        } else if health.networkDownloadKbSec >= 100.0 {
+            return .orange
         } else {
-            return .secondary // Idle
+            return .primary
         }
     }
 
-    // RAG Speed Color (Upload Throughput)
+    // RAG Upload Speed Color
     private var uploadColor: Color {
         guard wifi.isConnected || health.networkUploadKbSec > 0.1 else { return .red }
-        if health.networkUploadKbSec >= 512.0 { // >= 512 KB/s
+        if health.networkUploadKbSec >= 512.0 {
             return .green
-        } else if health.networkUploadKbSec >= 50.0 { // 50 KB/s - 512 KB/s
-            return .orange // Amber
+        } else if health.networkUploadKbSec >= 50.0 {
+            return .orange
         } else {
-            return .secondary // Idle
+            return .secondary
         }
     }
 
-    // RAG Color for Rolling Average
+    // RAG Average Speed Color
     private var averageColor: Color {
         let avg = health.averageDownloadKbSec
         guard wifi.isConnected || avg > 0.1 else { return .red }
         if avg >= 1024.0 {
             return .green
         } else if avg >= 100.0 {
-            return .orange // Amber
+            return .orange
         } else {
             return .secondary
         }
@@ -878,77 +882,93 @@ enum SystemShortcut {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            ZStack(alignment: .bottomTrailing) {
-                Image(systemName: wifi.isConnected ? "wifi" : "network")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16)
+        Button {
+            onOpenDashboard()
+        } label: {
+            HStack(spacing: 10) {
+                // Left: Wi-Fi Icon with RAG Status Dot
+                ZStack(alignment: .bottomTrailing) {
+                    Image(systemName: wifi.isConnected ? "wifi" : (linkDisplayName.contains("Wired") ? "cable.connector" : "network.slash"))
+                        .font(.system(size: 15))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 18)
 
-                Circle()
-                    .fill(linkStatusColor)
-                    .frame(width: 5.5, height: 5.5)
-                    .offset(x: 2, y: 2)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                // Line 1: Title & Network Name
-                Text(wifi.isConnected ? (wifi.ssid.isEmpty ? "Wi-Fi" : wifi.ssid) : (linkStatusText == "Wired" ? "Wired Network" : "Network"))
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                // Line 2: Live Speeds with RAG colors
-                HStack(spacing: 6) {
-                    HStack(spacing: 2) {
-                        Text("↓")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(downloadColor)
-                        Text(formatSpeed(health.networkDownloadKbSec))
-                            .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(downloadColor)
-                    }
-
-                    HStack(spacing: 2) {
-                        Text("↑")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(uploadColor)
-                        Text(formatSpeed(health.networkUploadKbSec))
-                            .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-                            .foregroundStyle(uploadColor)
-                    }
+                    Circle()
+                        .fill(linkStatusColor)
+                        .frame(width: 6, height: 6)
+                        .offset(x: 2, y: 2)
                 }
 
-                // Line 3: Average Throughput & Link Status / dBm
-                HStack(spacing: 3) {
-                    Text("Avg: \(formatSpeed(health.averageDownloadKbSec))")
-                        .font(.system(size: 9, weight: .medium, design: .monospaced))
-                        .foregroundStyle(averageColor)
+                // Middle: Network Identity & Link Quality
+                VStack(alignment: .leading, spacing: 2.5) {
+                    Text(linkDisplayName)
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
 
-                    Text("•")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.secondary.opacity(0.6))
-
-                    Text(linkStatusText)
-                        .font(.system(size: 9, weight: .semibold))
+                    Text(linkQualityDescription)
+                        .font(.system(size: 10))
                         .foregroundStyle(linkStatusColor)
+                        .lineLimit(1)
+                }
 
-                    if wifi.isConnected && wifi.rssi != 0 {
-                        Text("(\(wifi.rssi)dBm)")
-                            .font(.system(size: 8.5))
-                            .foregroundStyle(.secondary.opacity(0.7))
+                Spacer(minLength: 8)
+
+                // Right: Bandwidth Cockpit (Live & Rolling Average)
+                VStack(alignment: .trailing, spacing: 2.5) {
+                    // Live Download & Upload Speeds
+                    HStack(spacing: 8) {
+                        HStack(spacing: 2) {
+                            Text("↓")
+                                .font(.system(size: 11.5, weight: .bold))
+                                .foregroundStyle(downloadColor)
+                            Text(formatSpeed(health.networkDownloadKbSec))
+                                .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(downloadColor)
+                        }
+
+                        HStack(spacing: 2) {
+                            Text("↑")
+                                .font(.system(size: 10.5, weight: .semibold))
+                                .foregroundStyle(uploadColor)
+                            Text(formatSpeed(health.networkUploadKbSec))
+                                .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                                .foregroundStyle(uploadColor)
+                        }
+                    }
+
+                    // Rolling 60s Average Speed
+                    HStack(spacing: 3) {
+                        Text("60s Avg:")
+                            .font(.system(size: 9.5))
+                            .foregroundStyle(.secondary)
+
+                        Text("↓ \(formatSpeed(health.averageDownloadKbSec))")
+                            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                            .foregroundStyle(averageColor)
                     }
                 }
-                .lineLimit(1)
             }
-
-            Spacer()
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .buttonStyle(.plain)
+        .help("Network: \(linkDisplayName) • \(linkQualityDescription)\nLive: ↓ \(formatSpeed(health.networkDownloadKbSec)), ↑ \(formatSpeed(health.networkUploadKbSec))\nRolling Avg: ↓ \(formatSpeed(health.averageDownloadKbSec)), ↑ \(formatSpeed(health.averageUploadKbSec))\nClick to open Dashboard")
+        .contextMenu {
+            Button("Open Dashboard Network Tab") { onOpenDashboard() }
+            Button("Open macOS Network Settings...") { SystemShortcut.openNetworkSettings() }
+            Button("Launch Activity Monitor (Network)...") { SystemShortcut.openActivityMonitor() }
+            Divider()
+            Button("Copy Network Diagnostics") {
+                NSPasteboard.general.clearContents()
+                let ip = wifi.localIPv4.isEmpty ? "N/A" : wifi.localIPv4
+                let text = "Network: \(linkDisplayName), Quality: \(linkQualityDescription), IP: \(ip), Live: ↓ \(formatSpeed(health.networkDownloadKbSec)) ↑ \(formatSpeed(health.networkUploadKbSec)), Avg: ↓ \(formatSpeed(health.averageDownloadKbSec))"
+                NSPasteboard.general.setString(text, forType: .string)
+            }
+        }
     }
 }
 
