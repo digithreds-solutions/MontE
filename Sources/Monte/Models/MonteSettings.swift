@@ -48,34 +48,186 @@ enum KeepAwakeSettingsSubTab: String, Codable, CaseIterable, Identifiable {
 
 // MARK: - HUD Configuration
 
-enum HUDLayoutMode: String, Codable, CaseIterable, Identifiable {
+public enum HUDLayoutMode: String, Codable, CaseIterable, Identifiable, Sendable {
     case grid2Column = "2-Column Grid"
     case compactList = "Compact List"
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 }
 
-struct HUDSettings: Codable, Equatable {
-    var showCPU: Bool = true
-    var showMemory: Bool = true
-    var showSwap: Bool = true
-    var showBattery: Bool = true
-    var showGradle: Bool = false        // Default: OFF unless explicitly configured by developer
-    var showAgentStorage: Bool = true
-    var showDiskSpace: Bool = false     // Safe statvfs APFS free space
-    var showTopProcess: Bool = false    // Safe proc_pidinfo top RAM consumer
-    var showBatteryHealth: Bool = false // Battery cycles & condition
-    var showSsdHealth: Bool = false     // SSD wear & TBW write cycles
-    var showNetworkIO: Bool = false     // Active interface I/O bandwidth
-    var showXcodeDerivedData: Bool = false // Cached Xcode DerivedData size
-    var showGPU: Bool = true               // Real-time GPU & Apple Silicon Accelerator
-    var showCoreGrid: Bool = true          // Apple Silicon P-Core vs E-Core breakdown
-    var showBluetooth: Bool = true         // Connected Bluetooth accessories (AirPods, Mouse, etc.)
-    var showFans: Bool = false             // Fan speeds & cooling state
-    var showWiFi: Bool = true              // Wi-Fi SSID, RSSI dBm & link quality
-    var showMountedVolumes: Bool = false   // External storage & mounted volumes
-    var layoutMode: HUDLayoutMode = .grid2Column
-    var showQuickKillButtons: Bool = true
+public enum HUDMenuSize: String, Codable, CaseIterable, Identifiable, Sendable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .small: return "Small"
+        case .medium: return "Medium (Default)"
+        case .large: return "Large"
+        }
+    }
+
+    public func menuWidth(for mode: HUDLayoutMode) -> CGFloat {
+        if mode == .compactList {
+            switch self {
+            case .small: return 260
+            case .medium: return 285
+            case .large: return 305
+            }
+        } else {
+            switch self {
+            case .small: return 304
+            case .medium: return 332
+            case .large: return 356
+            }
+        }
+    }
+
+    public var tileHeight: CGFloat {
+        switch self {
+        case .small: return 48
+        case .medium: return 52
+        case .large: return 56
+        }
+    }
+
+    public var networkStripHeight: CGFloat {
+        switch self {
+        case .small: return 42
+        case .medium: return 45
+        case .large: return 48
+        }
+    }
+
+    public var titleFontSize: CGFloat {
+        switch self {
+        case .small: return 10
+        case .medium: return 10.5
+        case .large: return 11
+        }
+    }
+
+    public var valueFontSize: CGFloat {
+        switch self {
+        case .small: return 12
+        case .medium: return 12.5
+        case .large: return 13.5
+        }
+    }
+
+    public var detailFontSize: CGFloat {
+        switch self {
+        case .small: return 8.5
+        case .medium: return 9.5
+        case .large: return 10
+        }
+    }
+
+    public var iconFontSize: CGFloat {
+        switch self {
+        case .small: return 12.5
+        case .medium: return 13.5
+        case .large: return 14.5
+        }
+    }
+}
+
+public struct HUDSettings: Codable, Equatable, Sendable {
+    public var showCPU: Bool = true
+    public var showMemory: Bool = true
+    public var showSwap: Bool = true
+    public var showBattery: Bool = true
+    public var showGradle: Bool = false        // Default: OFF unless explicitly configured by developer
+    public var showAgentStorage: Bool = true
+    public var showDiskSpace: Bool = false     // Safe statvfs APFS free space
+    public var showTopProcess: Bool = false    // Safe proc_pidinfo top RAM consumer
+    public var showBatteryHealth: Bool = false // Battery cycles & condition
+    public var showSsdHealth: Bool = false     // SSD wear & TBW write cycles
+    public var showNetworkIO: Bool = false     // Active interface I/O bandwidth
+    public var showXcodeDerivedData: Bool = false // Cached Xcode DerivedData size
+    public var showGPU: Bool = true               // Real-time GPU & Apple Silicon Accelerator
+    public var showCoreGrid: Bool = true          // Apple Silicon P-Core vs E-Core breakdown
+    public var showBluetooth: Bool = true         // Connected Bluetooth accessories (AirPods, Mouse, etc.)
+    public var showFans: Bool = false             // Fan speeds & cooling state
+    public var showWiFi: Bool = true              // Wi-Fi SSID, RSSI dBm & link quality
+    public var showMountedVolumes: Bool = false   // External storage & mounted volumes
+    public var layoutMode: HUDLayoutMode = .grid2Column
+    public var menuSize: HUDMenuSize = .medium    // Default: Medium!
+    public var showQuickKillButtons: Bool = true
+
+    public init(
+        showCPU: Bool = true,
+        showMemory: Bool = true,
+        showSwap: Bool = true,
+        showBattery: Bool = true,
+        showGradle: Bool = false,
+        showAgentStorage: Bool = true,
+        showDiskSpace: Bool = false,
+        showTopProcess: Bool = false,
+        showBatteryHealth: Bool = false,
+        showSsdHealth: Bool = false,
+        showNetworkIO: Bool = false,
+        showXcodeDerivedData: Bool = false,
+        showGPU: Bool = true,
+        showCoreGrid: Bool = true,
+        showBluetooth: Bool = true,
+        showFans: Bool = false,
+        showWiFi: Bool = true,
+        showMountedVolumes: Bool = false,
+        layoutMode: HUDLayoutMode = .grid2Column,
+        menuSize: HUDMenuSize = .medium,
+        showQuickKillButtons: Bool = true
+    ) {
+        self.showCPU = showCPU
+        self.showMemory = showMemory
+        self.showSwap = showSwap
+        self.showBattery = showBattery
+        self.showGradle = showGradle
+        self.showAgentStorage = showAgentStorage
+        self.showDiskSpace = showDiskSpace
+        self.showTopProcess = showTopProcess
+        self.showBatteryHealth = showBatteryHealth
+        self.showSsdHealth = showSsdHealth
+        self.showNetworkIO = showNetworkIO
+        self.showXcodeDerivedData = showXcodeDerivedData
+        self.showGPU = showGPU
+        self.showCoreGrid = showCoreGrid
+        self.showBluetooth = showBluetooth
+        self.showFans = showFans
+        self.showWiFi = showWiFi
+        self.showMountedVolumes = showMountedVolumes
+        self.layoutMode = layoutMode
+        self.menuSize = menuSize
+        self.showQuickKillButtons = showQuickKillButtons
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.showCPU = try container.decodeIfPresent(Bool.self, forKey: .showCPU) ?? true
+        self.showMemory = try container.decodeIfPresent(Bool.self, forKey: .showMemory) ?? true
+        self.showSwap = try container.decodeIfPresent(Bool.self, forKey: .showSwap) ?? true
+        self.showBattery = try container.decodeIfPresent(Bool.self, forKey: .showBattery) ?? true
+        self.showGradle = try container.decodeIfPresent(Bool.self, forKey: .showGradle) ?? false
+        self.showAgentStorage = try container.decodeIfPresent(Bool.self, forKey: .showAgentStorage) ?? true
+        self.showDiskSpace = try container.decodeIfPresent(Bool.self, forKey: .showDiskSpace) ?? false
+        self.showTopProcess = try container.decodeIfPresent(Bool.self, forKey: .showTopProcess) ?? false
+        self.showBatteryHealth = try container.decodeIfPresent(Bool.self, forKey: .showBatteryHealth) ?? false
+        self.showSsdHealth = try container.decodeIfPresent(Bool.self, forKey: .showSsdHealth) ?? false
+        self.showNetworkIO = try container.decodeIfPresent(Bool.self, forKey: .showNetworkIO) ?? false
+        self.showXcodeDerivedData = try container.decodeIfPresent(Bool.self, forKey: .showXcodeDerivedData) ?? false
+        self.showGPU = try container.decodeIfPresent(Bool.self, forKey: .showGPU) ?? true
+        self.showCoreGrid = try container.decodeIfPresent(Bool.self, forKey: .showCoreGrid) ?? true
+        self.showBluetooth = try container.decodeIfPresent(Bool.self, forKey: .showBluetooth) ?? true
+        self.showFans = try container.decodeIfPresent(Bool.self, forKey: .showFans) ?? false
+        self.showWiFi = try container.decodeIfPresent(Bool.self, forKey: .showWiFi) ?? true
+        self.showMountedVolumes = try container.decodeIfPresent(Bool.self, forKey: .showMountedVolumes) ?? false
+        self.layoutMode = try container.decodeIfPresent(HUDLayoutMode.self, forKey: .layoutMode) ?? .grid2Column
+        self.menuSize = try container.decodeIfPresent(HUDMenuSize.self, forKey: .menuSize) ?? .medium
+        self.showQuickKillButtons = try container.decodeIfPresent(Bool.self, forKey: .showQuickKillButtons) ?? true
+    }
 }
 
 // MARK: - Proactive Watchdog & Threshold Alert Settings

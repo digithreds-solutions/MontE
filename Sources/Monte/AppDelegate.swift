@@ -25,7 +25,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var dashboardWindowController: DashboardWindowController?
     private var settingsWindowController: SettingsWindowController?
     private var refreshTimer: Timer?
-    private var pulseTimer: Timer?
     private var powerNotificationSource: CFRunLoopSource?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -53,7 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setupStatusItem()
         setupPowerChangeObserver()
         startAutoRefresh()
-        startPulseAnimation()
         setupGlobalHotkey()
 
         // Initial data load
@@ -102,35 +100,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         buildMenu()
     }
 
-    private func startPulseAnimation() {
-        pulseTimer?.invalidate()
-        // Smooth 20 FPS LED breathing pulse (t = 0.05s)
-        pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self = self,
-                      let button = self.statusItem?.button,
-                      self.viewModel.settings.showMenuBarStatusDot else { return }
-
-                let nsColor = self.viewModel.health.overallHealth.nsColor
-                let time = Date().timeIntervalSinceReferenceDate
-                // Slow sinusoidal breathing wave over exactly 3.0 seconds: (2π / 3.0)
-                let pulseFactor = CGFloat((sin(time * (2.0 * .pi / 3.0)) + 1.0) / 2.0)
-
-                button.image = NSImage.glowingStatusDot(color: nsColor, size: 8.0, pulseFactor: pulseFactor)
-                button.imagePosition = .imageLeading
-            }
-        }
-    }
-
     private func updateStatusItemTitle() {
         guard let button = statusItem.button else { return }
         button.title = viewModel.menuBarTitle
 
         if viewModel.settings.showMenuBarStatusDot {
             let nsColor = viewModel.health.overallHealth.nsColor
-            let time = Date().timeIntervalSinceReferenceDate
-            let pulseFactor = CGFloat((sin(time * (2.0 * .pi / 3.0)) + 1.0) / 2.0)
-            button.image = NSImage.glowingStatusDot(color: nsColor, size: 8.0, pulseFactor: pulseFactor)
+            button.image = NSImage.threeDimensionalLedDot(color: nsColor, size: 8.0)
             button.imagePosition = .imageLeading
         } else {
             button.image = nil
@@ -167,7 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         )
         let hostingView = NSHostingView(rootView: gridView)
-        let hudWidth: CGFloat = MenuStatsGridView.hudWidth(for: hud.layoutMode)
+        let hudWidth: CGFloat = MenuStatsGridView.hudWidth(hud: hud)
         let minCalculatedHeight = MenuStatsGridView.requiredHeight(
             hud: hud,
             health: h,
@@ -622,12 +598,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 }
 
-// MARK: - Menu Bar Glowing LED Status Dot Image Generator
+// MARK: - Menu Bar 3D LED Status Dot Image Generator (Zero Blinking / 0% CPU)
  
 extension NSImage {
-    static func glowingStatusDot(color: NSColor, size: CGFloat = 8.0, pulseFactor: CGFloat = 0.5) -> NSImage {
-        let canvasWidth: CGFloat = 18.0
-        let canvasHeight: CGFloat = 18.0
+    static func threeDimensionalLedDot(color: NSColor, size: CGFloat = 8.0) -> NSImage {
+        let canvasWidth: CGFloat = 16.0
+        let canvasHeight: CGFloat = 16.0
         let img = NSImage(size: NSSize(width: canvasWidth, height: canvasHeight), flipped: false) { rect in
             guard let ctx = NSGraphicsContext.current?.cgContext else { return false }
 
@@ -635,47 +611,51 @@ extension NSImage {
             let colorSpace = CGColorSpaceCreateDeviceRGB()
             let transparentColor = color.withAlphaComponent(0.0).cgColor
 
-            // 1. Layer 1: Diffuse Outer Aura Bloom (breathes smoothly with pulseFactor)
-            let outerRadius: CGFloat = (size / 2.0) + 2.0 + (3.0 * pulseFactor)
-            let outerAlpha: CGFloat = 0.25 + (0.35 * pulseFactor)
-            let glowOuterColor = color.withAlphaComponent(outerAlpha).cgColor
-
-            if let outerGradient = CGGradient(colorsSpace: colorSpace, colors: [glowOuterColor, transparentColor] as CFArray, locations: [0.0, 1.0]) {
+            // 1. Layer 1: Subtle Static Corona Glow
+            let glowRadius = (size / 2.0) + 2.0
+            let glowColor = color.withAlphaComponent(0.35).cgColor
+            if let glowGradient = CGGradient(colorsSpace: colorSpace, colors: [glowColor, transparentColor] as CFArray, locations: [0.0, 1.0]) {
                 ctx.drawRadialGradient(
-                    outerGradient,
+                    glowGradient,
                     startCenter: center,
-                    startRadius: size / 2.0,
+                    startRadius: max(size / 2.0 - 0.5, 0),
                     endCenter: center,
-                    endRadius: outerRadius,
+                    endRadius: glowRadius,
                     options: .drawsAfterEndLocation
                 )
             }
 
-            // 2. Layer 2: Intense Corona Halo Glow (close to the diode body)
-            let coronaRadius: CGFloat = (size / 2.0) + 1.8
-            let coronaAlpha: CGFloat = 0.50 + (0.35 * pulseFactor)
-            let glowCoronaColor = color.withAlphaComponent(coronaAlpha).cgColor
+            // 2. Layer 2: Outer Dark Bezel Ring (3D socket rim)
+            let bezelRect = CGRect(x: center.x - size / 2.0 - 0.5, y: center.y - size / 2.0 - 0.5, width: size + 1.0, height: size + 1.0)
+            ctx.setFillColor(NSColor.black.withAlphaComponent(0.25).cgColor)
+            ctx.fillEllipse(in: bezelRect)
 
-            if let coronaGradient = CGGradient(colorsSpace: colorSpace, colors: [glowCoronaColor, transparentColor] as CFArray, locations: [0.0, 1.0]) {
-                ctx.drawRadialGradient(
-                    coronaGradient,
-                    startCenter: center,
-                    startRadius: max(size / 2.0 - 1.0, 0),
-                    endCenter: center,
-                    endRadius: coronaRadius,
-                    options: .drawsAfterEndLocation
-                )
-            }
-
-            // 3. Layer 3: Vibrant Solid LED Diode Core
-            ctx.setFillColor(color.cgColor)
+            // 3. Layer 3: 3D Spherical Diode Body with Radial Depth Shading
             let dotRect = CGRect(x: center.x - size / 2.0, y: center.y - size / 2.0, width: size, height: size)
-            ctx.fillEllipse(in: dotRect)
+            let lightCenter = CGPoint(x: center.x - size * 0.15, y: center.y + size * 0.15)
+            let brightShade = color.blended(withFraction: 0.35, of: .white)?.cgColor ?? color.cgColor
+            let deepShade = color.blended(withFraction: 0.25, of: .black)?.cgColor ?? color.cgColor
 
-            // 4. Layer 4: Specular LED Lens Highlight / Glaze Hotspot
-            let highlightSize: CGFloat = size * 0.40
-            let highlightCenter = CGPoint(x: center.x - size * 0.16, y: center.y + size * 0.16)
-            let highlightColor = NSColor.white.withAlphaComponent(0.50 + (0.30 * pulseFactor)).cgColor
+            ctx.saveGState()
+            ctx.addEllipse(in: dotRect)
+            ctx.clip()
+
+            if let sphereGradient = CGGradient(colorsSpace: colorSpace, colors: [brightShade, color.cgColor, deepShade] as CFArray, locations: [0.0, 0.55, 1.0]) {
+                ctx.drawRadialGradient(
+                    sphereGradient,
+                    startCenter: lightCenter,
+                    startRadius: 0.0,
+                    endCenter: center,
+                    endRadius: size / 2.0,
+                    options: .drawsAfterEndLocation
+                )
+            }
+            ctx.restoreGState()
+
+            // 4. Layer 4: Specular Lens Hotspot (Glass reflection)
+            let highlightSize: CGFloat = size * 0.35
+            let highlightCenter = CGPoint(x: center.x - size * 0.18, y: center.y + size * 0.18)
+            let highlightColor = NSColor.white.withAlphaComponent(0.75).cgColor
             let highlightClear = NSColor.white.withAlphaComponent(0.0).cgColor
 
             if let highlightGradient = CGGradient(colorsSpace: colorSpace, colors: [highlightColor, highlightClear] as CFArray, locations: [0.0, 1.0]) {

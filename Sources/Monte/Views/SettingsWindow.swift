@@ -1833,6 +1833,19 @@ struct ActiveKeepAwakeItem: Identifiable {
             // 3. Dropdown HUD Customization
             SettingsSectionRow(label: "Dropdown HUD:") {
                 HStack {
+                    Text("HUD Menu Size:")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                    Picker("", selection: $viewModel.settings.hud.menuSize) {
+                        ForEach(HUDMenuSize.allCases) { size in
+                            Text(size.displayName).tag(size)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 250)
+                }
+
+                HStack {
                     Text("HUD Layout Style:")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)

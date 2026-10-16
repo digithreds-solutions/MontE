@@ -1,47 +1,47 @@
 import SwiftUI
 import AppKit
 
-// MARK: - Modern Sleek Glowing Status Dot
+// MARK: - Modern 3D LED Status Dot (Zero Background Animation / 0% CPU)
 
 @MainActor struct GlowingStatusDot: View {
     let color: Color
     var size: CGFloat = 8.0
-    var isPulsating: Bool = true
-    @State private var isBreathing: Bool = false
 
     var body: some View {
         ZStack {
-            // Layer 1: Diffuse Ambient Halo Glow (Breathing)
+            // Layer 1: Subtle Static Ambient Glow
             Circle()
-                .fill(color.opacity(isBreathing ? 0.60 : 0.25))
-                .frame(width: size + (isBreathing ? 8 : 4), height: size + (isBreathing ? 8 : 4))
-                .blur(radius: isBreathing ? 4.5 : 2.0)
+                .fill(color.opacity(0.35))
+                .frame(width: size + 4, height: size + 4)
+                .blur(radius: 1.5)
 
-            // Layer 2: Intense Corona Flare
+            // Layer 2: 3D Spherical Diode Dome with Radial Depth
             Circle()
-                .fill(color.opacity(0.85))
-                .frame(width: size + 2.5, height: size + 2.5)
-                .blur(radius: 1.2)
-
-            // Layer 3: Solid Luminous Core
-            Circle()
-                .fill(color)
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            color.opacity(0.95),
+                            color,
+                            color.opacity(0.75)
+                        ],
+                        center: .init(x: 0.35, y: 0.35),
+                        startRadius: 0,
+                        endRadius: size / 2.0
+                    )
+                )
                 .frame(width: size, height: size)
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.20), lineWidth: 0.5)
+                )
 
-            // Layer 4: Specular LED Lens Highlight
+            // Layer 3: Specular 3D Glass Lens Glare
             Circle()
-                .fill(Color.white.opacity(0.65))
-                .frame(width: size * 0.35, height: size * 0.35)
+                .fill(Color.white.opacity(0.70))
+                .frame(width: size * 0.36, height: size * 0.36)
                 .offset(x: -size * 0.16, y: -size * 0.16)
         }
-        .frame(width: size + 8, height: size + 8)
-        .onAppear {
-            if isPulsating {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                    isBreathing = true
-                }
-            }
-        }
+        .frame(width: size + 4, height: size + 4)
     }
 }
 
@@ -192,7 +192,7 @@ enum SystemShortcut {
 
             // Full-Width Smart Network Cockpit Strip
             if hud.showWiFi || hud.showNetworkIO {
-                NetworkCockpitStrip(health: h, onOpenDashboard: {
+                NetworkCockpitStrip(health: h, size: hud.menuSize, onOpenDashboard: {
                     onOpenDashboard()
                     viewModel.selectedDashboardTab = .overview
                 })
@@ -212,14 +212,18 @@ enum SystemShortcut {
         .padding(.horizontal, 16)
         .padding(.top, 14)
         .padding(.bottom, 16) // Exact 16pt bottom padding to divider
-        .frame(width: Self.hudWidth(for: hud.layoutMode))
+        .frame(width: Self.hudWidth(hud: hud))
         .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Dynamic Sizing & Layout Geometry
 
+    static func hudWidth(hud: HUDSettings) -> CGFloat {
+        hud.menuSize.menuWidth(for: hud.layoutMode)
+    }
+
     static func hudWidth(for mode: HUDLayoutMode) -> CGFloat {
-        mode == .compactList ? 300 : 356
+        mode == .compactList ? 285 : 332
     }
 
     static func activeTileCount(hud: HUDSettings, health: SystemHealth, settings: MonteSettings) -> Int {
@@ -245,7 +249,7 @@ enum SystemShortcut {
         let count = activeTileCount(hud: hud, health: health, settings: settings)
         let isCompact = hud.layoutMode == .compactList
         let rows = isCompact ? CGFloat(count) : ceil(CGFloat(count) / 2.0)
-        let tileHeight: CGFloat = 56.0
+        let tileHeight: CGFloat = hud.menuSize.tileHeight
         let interSpacing = max(0, rows - 1) * (isCompact ? 8.0 : 10.0)
         let headerHeight: CGFloat = 20.0
         let topPadding: CGFloat = 14.0
@@ -258,7 +262,7 @@ enum SystemShortcut {
             ? (14.0 + CGFloat(displayedBt * 22) + CGFloat(max(0, displayedBt - 1) * 5) + 12.0)
             : 0.0
         let showNet = hud.showWiFi || hud.showNetworkIO
-        let netHeight: CGFloat = showNet ? (48.0 + 12.0) : 0.0
+        let netHeight: CGFloat = showNet ? (hud.menuSize.networkStripHeight + 12.0) : 0.0
         let tilesHeight = (rows * tileHeight) + interSpacing
         return topPadding + headerHeight + headerSpacing + awakeHeight + btHeight + netHeight + tilesHeight + bottomPadding
     }
@@ -322,7 +326,8 @@ enum SystemShortcut {
                     value: "\(String(format: "%.0f", h.cpuUsagePercent))%",
                     detail: (hud.showCoreGrid && h.processorCores.totalCoreCount > 0)
                         ? "\(String(format: "%.0f", h.processorCores.pCoreAveragePercent))% P • \(String(format: "%.0f", h.processorCores.eCoreAveragePercent))% E"
-                        : h.thermalStatus.description
+                        : h.thermalStatus.description,
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -343,7 +348,8 @@ enum SystemShortcut {
                     symbolName: "display",
                     title: "GPU Load",
                     value: "\(String(format: "%.0f", h.gpu.deviceUtilizationPercent))%",
-                    detail: "\(String(format: "%.1f", h.gpu.inUseMemoryMb / 1024.0)) GB VRAM"
+                    detail: "\(String(format: "%.1f", h.gpu.inUseMemoryMb / 1024.0)) GB VRAM",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -363,7 +369,8 @@ enum SystemShortcut {
                     symbolName: "memorychip",
                     title: "Memory",
                     value: "\(String(format: "%.1f", h.ramUsedGb)) GB",
-                    detail: "\(String(format: "%.0f", h.ramPercent))% used"
+                    detail: "\(String(format: "%.0f", h.ramPercent))% used",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -383,32 +390,32 @@ enum SystemShortcut {
             Button {
                 onOpenProcessInvestigator()
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: hud.menuSize == .small ? 7 : 8) {
                     Image(systemName: "internaldrive")
-                        .font(.system(size: 13))
+                        .font(.system(size: hud.menuSize.iconFontSize))
                         .foregroundStyle(.secondary)
-                        .frame(width: 16)
+                        .frame(width: hud.menuSize == .small ? 16 : 18)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: hud.menuSize == .small ? 1.5 : 2) {
                         Text("SSD Swap")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: hud.menuSize.titleFontSize, weight: .medium))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 4) {
                             Text("\(String(format: "%.1f", h.swapUsedMb / 1024.0)) GB")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.system(size: hud.menuSize.valueFontSize, weight: .semibold))
                                 .foregroundStyle(.primary)
 
                             SwapMicroBar(ratio: min(h.swapUsedMb / 6144.0, 1.0), risk: h.swapRisk)
                         }
                         Text(h.swapRisk.label)
-                            .font(.system(size: 9))
+                            .font(.system(size: hud.menuSize.detailFontSize))
                             .foregroundStyle(h.swapRisk == .critical ? Color.red : (h.swapRisk == .moderate ? Color.orange : Color.secondary.opacity(0.7)))
                     }
                     Spacer()
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
+                .padding(.horizontal, hud.menuSize == .small ? 9 : 10)
+                .padding(.vertical, hud.menuSize == .small ? 6 : 7)
+                .frame(maxWidth: .infinity, minHeight: hud.menuSize.tileHeight, maxHeight: hud.menuSize.tileHeight, alignment: .leading)
                 .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
@@ -421,34 +428,34 @@ enum SystemShortcut {
             }
         }
 
-        // 4. Battery & Power with Glowing 8dp Status Dot (3-line layout)
+        // 4. Battery & Power with Glowing Status Dot (3-line layout)
         if hud.showBattery {
             Button {
                 SystemShortcut.openBatterySettings()
             } label: {
-                HStack(spacing: 8) {
-                    GlowingStatusDot(color: batteryDotColor, size: 8.0)
-                        .frame(width: 16)
+                HStack(spacing: hud.menuSize == .small ? 7 : 8) {
+                    GlowingStatusDot(color: batteryDotColor, size: hud.menuSize == .small ? 7.0 : 8.0)
+                        .frame(width: hud.menuSize == .small ? 15 : 16)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: hud.menuSize == .small ? 1.5 : 2) {
                         Text("Battery")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: hud.menuSize.titleFontSize, weight: .medium))
                             .foregroundStyle(.secondary)
 
                         Text("\(h.batteryPercent)%")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.system(size: hud.menuSize.valueFontSize, weight: .semibold))
                             .foregroundStyle(.primary)
 
                         Text(batteryStateText)
-                            .font(.system(size: 9))
+                            .font(.system(size: hud.menuSize.detailFontSize))
                             .foregroundStyle(batteryStateColor)
                             .lineLimit(1)
                     }
                     Spacer()
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
+                .padding(.horizontal, hud.menuSize == .small ? 9 : 10)
+                .padding(.vertical, hud.menuSize == .small ? 6 : 7)
+                .frame(maxWidth: .infinity, minHeight: hud.menuSize.tileHeight, maxHeight: hud.menuSize.tileHeight, alignment: .leading)
                 .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
@@ -473,7 +480,8 @@ enum SystemShortcut {
                     symbolName: "internaldrive.fill",
                     title: "APFS Storage",
                     value: "\(String(format: "%.0f", h.diskFreeGb)) GB Free",
-                    detail: "\(String(format: "%.0f", h.diskUsedPercent))% of \(Int(h.diskTotalGb))G"
+                    detail: "\(String(format: "%.0f", h.diskUsedPercent))% of \(Int(h.diskTotalGb))G",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -493,7 +501,8 @@ enum SystemShortcut {
                     symbolName: "app.dashed",
                     title: "Top RAM App",
                     value: h.topProcessName.count > 10 ? String(h.topProcessName.prefix(9)) + "…" : h.topProcessName,
-                    detail: "\(String(format: "%.0f", h.topProcessRamMb)) MB Resident"
+                    detail: "\(String(format: "%.0f", h.topProcessRamMb)) MB Resident",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -514,7 +523,8 @@ enum SystemShortcut {
                     symbolName: "heart.text.square",
                     title: "Battery Health",
                     value: h.batteryCycles.map { "\($0) Cycles" } ?? "Normal",
-                    detail: "\(h.batteryHealthPercent ?? 100)% • \(h.batteryCondition ?? "Normal")"
+                    detail: "\(h.batteryHealthPercent ?? 100)% • \(h.batteryCondition ?? "Normal")",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -550,7 +560,8 @@ enum SystemShortcut {
                     symbolName: "internaldrive.badge.checkmark",
                     title: "SSD Health",
                     value: String(format: "%.1f TB TBW", h.ssdLifetimeBytesWrittenTb ?? (h.ssdBytesWrittenGb / 1024.0)),
-                    detail: "\(h.ssdPercentageUsed ?? 0)% Wear • \(h.ssdSmartStatus)"
+                    detail: "\(h.ssdPercentageUsed ?? 0)% Wear • \(h.ssdSmartStatus)",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -584,7 +595,8 @@ enum SystemShortcut {
                     symbolName: "fanblades",
                     title: "Cooling & Fans",
                     value: h.fans.first?.displaySpeed ?? "Silent",
-                    detail: h.fans.count > 1 ? "\(h.fans[1].displaySpeed)" : h.thermalStatus.description
+                    detail: h.fans.count > 1 ? "\(h.fans[1].displaySpeed)" : h.thermalStatus.description,
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -602,7 +614,8 @@ enum SystemShortcut {
                     symbolName: extVol.isRemovable ? "externaldrive" : "internaldrive",
                     title: extVol.name,
                     value: String(format: "%.0fG Free", extVol.freeGb),
-                    detail: "\(String(format: "%.0f%%", extVol.usedPercent)) used"
+                    detail: "\(String(format: "%.0f%%", extVol.usedPercent)) used",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -622,7 +635,8 @@ enum SystemShortcut {
                     symbolName: "hammer.fill",
                     title: "DerivedData",
                     value: "\(String(format: "%.1f", h.storage.xcodeDerivedDataGb)) GB",
-                    detail: "Clean cache"
+                    detail: "Clean cache",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -638,16 +652,16 @@ enum SystemShortcut {
 
         // 10. Gradle Daemons (Only shown if configured by developer)
         if viewModel.settings.monitorGradle && hud.showGradle {
-            HStack(spacing: 8) {
+            HStack(spacing: hud.menuSize == .small ? 7 : 8) {
                 Image(systemName: "hammer")
-                    .font(.system(size: 13))
+                    .font(.system(size: hud.menuSize.iconFontSize))
                     .foregroundStyle(.secondary)
-                    .frame(width: 16)
+                    .frame(width: hud.menuSize == .small ? 16 : 18)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: hud.menuSize == .small ? 1.5 : 2) {
                     HStack {
                         Text("Gradle")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: hud.menuSize.titleFontSize, weight: .medium))
                             .foregroundStyle(.secondary)
 
                         Spacer()
@@ -659,7 +673,7 @@ enum SystemShortcut {
                                 }
                             } label: {
                                 Text("Kill")
-                                    .font(.system(size: 9, weight: .semibold))
+                                    .font(.system(size: hud.menuSize == .small ? 8.5 : 9, weight: .semibold))
                                     .foregroundStyle(.secondary)
                                     .padding(.horizontal, 5)
                                     .padding(.vertical, 1.5)
@@ -672,19 +686,19 @@ enum SystemShortcut {
                     }
 
                     Text("\(h.daemons.count) Daemon\(h.daemons.count == 1 ? "" : "s")")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: hud.menuSize.valueFontSize, weight: .semibold))
                         .foregroundStyle(.primary)
 
                     Text(h.daemons.isEmpty ? "Optimized" : "Idle background")
-                        .font(.system(size: 9))
+                        .font(.system(size: hud.menuSize.detailFontSize))
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
                 }
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .leading)
+            .padding(.horizontal, hud.menuSize == .small ? 9 : 10)
+            .padding(.vertical, hud.menuSize == .small ? 6 : 7)
+            .frame(maxWidth: .infinity, minHeight: hud.menuSize.tileHeight, maxHeight: hud.menuSize.tileHeight, alignment: .leading)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .contextMenu {
@@ -704,7 +718,8 @@ enum SystemShortcut {
                     symbolName: "folder.badge.gearshape",
                     title: "Agent Storage",
                     value: "\(String(format: "%.0f", h.storage.antigravityBrainMb + h.storage.claudeLogsMb)) MB",
-                    detail: "Inspect & clean"
+                    detail: "Inspect & clean",
+                    size: hud.menuSize
                 )
             }
             .buttonStyle(.plain)
@@ -745,40 +760,41 @@ enum SystemShortcut {
     }
 }
 
-// MARK: - Reusable Clean Monochrome Stat Cell (Consistent 56pt Height & Enhanced Readability)
+// MARK: - Reusable Clean Monochrome Stat Cell (Consistent Height & Responsive Scaling)
 
 @MainActor private struct StatGridCell: View {
     let symbolName: String
     let title: String
     let value: String
     let detail: String
+    var size: HUDMenuSize = .medium
 
     var body: some View {
-        HStack(spacing: 9) {
+        HStack(spacing: size == .small ? 7 : 9) {
             Image(systemName: symbolName)
-                .font(.system(size: 14))
+                .font(.system(size: size.iconFontSize))
                 .foregroundStyle(.secondary)
-                .frame(width: 18)
+                .frame(width: size == .small ? 16 : 18)
 
-            VStack(alignment: .leading, spacing: 2.5) {
+            VStack(alignment: .leading, spacing: size == .small ? 1.5 : 2.5) {
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: size.titleFontSize, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 Text(value)
-                    .font(.system(size: 13.5, weight: .semibold))
+                    .font(.system(size: size.valueFontSize, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 Text(detail)
-                    .font(.system(size: 10))
+                    .font(.system(size: size.detailFontSize))
                     .foregroundStyle(Color.secondary.opacity(0.75))
                     .lineLimit(1)
             }
             Spacer()
         }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 7)
-        .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56, alignment: .leading)
+        .padding(.horizontal, size == .small ? 9 : 11)
+        .padding(.vertical, size == .small ? 5.5 : 7)
+        .frame(maxWidth: .infinity, minHeight: size.tileHeight, maxHeight: size.tileHeight, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
@@ -788,6 +804,7 @@ enum SystemShortcut {
 
 @MainActor private struct NetworkCockpitStrip: View {
     let health: SystemHealth
+    var size: HUDMenuSize = .medium
     let onOpenDashboard: () -> Void
 
     private var wifi: WiFiDiagnostics { health.wifi }
@@ -885,13 +902,13 @@ enum SystemShortcut {
         Button {
             onOpenDashboard()
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: size == .small ? 8 : 10) {
                 // Left: Wi-Fi Icon with RAG Status Dot
                 ZStack(alignment: .bottomTrailing) {
                     Image(systemName: wifi.isConnected ? "wifi" : (linkDisplayName.contains("Wired") ? "cable.connector" : "network.slash"))
-                        .font(.system(size: 15))
+                        .font(.system(size: size.iconFontSize + 1))
                         .foregroundStyle(.secondary)
-                        .frame(width: 18)
+                        .frame(width: size == .small ? 16 : 18)
 
                     Circle()
                         .fill(linkStatusColor)
@@ -900,39 +917,39 @@ enum SystemShortcut {
                 }
 
                 // Middle: Network Identity & Link Quality
-                VStack(alignment: .leading, spacing: 2.5) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(linkDisplayName)
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(.system(size: size.valueFontSize, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
 
                     Text(linkQualityDescription)
-                        .font(.system(size: 10))
+                        .font(.system(size: size.detailFontSize))
                         .foregroundStyle(linkStatusColor)
                         .lineLimit(1)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: 6)
 
                 // Right: Bandwidth Cockpit (Live & Rolling Average)
-                VStack(alignment: .trailing, spacing: 2.5) {
+                VStack(alignment: .trailing, spacing: 2) {
                     // Live Download & Upload Speeds
-                    HStack(spacing: 8) {
+                    HStack(spacing: size == .small ? 6 : 8) {
                         HStack(spacing: 2) {
                             Text("↓")
-                                .font(.system(size: 11.5, weight: .bold))
+                                .font(.system(size: size.detailFontSize + 1.5, weight: .bold))
                                 .foregroundStyle(downloadColor)
                             Text(formatSpeed(health.networkDownloadKbSec))
-                                .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
+                                .font(.system(size: size.valueFontSize, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(downloadColor)
                         }
 
                         HStack(spacing: 2) {
                             Text("↑")
-                                .font(.system(size: 10.5, weight: .semibold))
+                                .font(.system(size: size.detailFontSize + 0.5, weight: .semibold))
                                 .foregroundStyle(uploadColor)
                             Text(formatSpeed(health.networkUploadKbSec))
-                                .font(.system(size: 11.5, weight: .medium, design: .monospaced))
+                                .font(.system(size: size.titleFontSize + 0.5, weight: .medium, design: .monospaced))
                                 .foregroundStyle(uploadColor)
                         }
                     }
@@ -940,18 +957,18 @@ enum SystemShortcut {
                     // Rolling 60s Average Speed
                     HStack(spacing: 3) {
                         Text("60s Avg:")
-                            .font(.system(size: 9.5))
+                            .font(.system(size: size.detailFontSize))
                             .foregroundStyle(.secondary)
 
                         Text("↓ \(formatSpeed(health.averageDownloadKbSec))")
-                            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                            .font(.system(size: size.detailFontSize, weight: .medium, design: .monospaced))
                             .foregroundStyle(averageColor)
                     }
                 }
             }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48)
+            .padding(.horizontal, size == .small ? 9 : 11)
+            .padding(.vertical, size == .small ? 6 : 8)
+            .frame(maxWidth: .infinity, minHeight: size.networkStripHeight, maxHeight: size.networkStripHeight)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
