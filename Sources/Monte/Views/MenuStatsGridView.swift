@@ -826,17 +826,18 @@ enum SystemShortcut {
         }
     }
 
-    private var linkDisplayName: String {
+    private var linkDisplayNameAndDbm: String {
         guard wifi.isConnected else {
             if health.networkDownloadKbSec > 10.0 || health.networkUploadKbSec > 10.0 {
                 return "Wired Ethernet"
             }
             return "Network Disconnected"
         }
-        if wifi.ssid.isEmpty || wifi.ssid == "Wi-Fi (Connected)" {
-            return "Wi-Fi"
+        let name = (wifi.ssid.isEmpty || wifi.ssid == "Wi-Fi (Connected)") ? "Wi-Fi" : wifi.ssid
+        if wifi.rssi != 0 {
+            return "\(name) (\(wifi.rssi) dBm)"
         }
-        return wifi.ssid
+        return name
     }
 
     private var linkQualityDescription: String {
@@ -846,11 +847,7 @@ enum SystemShortcut {
             }
             return "No Internet Connection"
         }
-        if wifi.rssi != 0 {
-            return "\(wifi.qualityLabel) Link (\(wifi.rssi) dBm)"
-        } else {
-            return "\(wifi.qualityLabel) Link"
-        }
+        return "\(wifi.qualityLabel) Link"
     }
 
     // RAG Download Speed Color
@@ -891,7 +888,9 @@ enum SystemShortcut {
     }
 
     private func formatSpeed(_ kbSec: Double) -> String {
-        if kbSec >= 1024.0 {
+        if kbSec >= 1024.0 * 1024.0 {
+            return String(format: "%.1f GB/s", kbSec / (1024.0 * 1024.0))
+        } else if kbSec >= 1024.0 {
             return String(format: "%.1f MB/s", kbSec / 1024.0)
         } else {
             return String(format: "%.0f KB/s", kbSec)
@@ -905,7 +904,7 @@ enum SystemShortcut {
             HStack(spacing: size == .small ? 8 : 10) {
                 // Left: Wi-Fi Icon with RAG Status Dot
                 ZStack(alignment: .bottomTrailing) {
-                    Image(systemName: wifi.isConnected ? "wifi" : (linkDisplayName.contains("Wired") ? "cable.connector" : "network.slash"))
+                    Image(systemName: wifi.isConnected ? "wifi" : (linkDisplayNameAndDbm.contains("Wired") ? "cable.connector" : "network.slash"))
                         .font(.system(size: size.iconFontSize + 1))
                         .foregroundStyle(.secondary)
                         .frame(width: size == .small ? 16 : 18)
@@ -918,13 +917,14 @@ enum SystemShortcut {
 
                 // Middle: Network Identity & Link Quality
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(linkDisplayName)
+                    Text(linkDisplayNameAndDbm)
                         .font(.system(size: size.valueFontSize, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
+                        .truncationMode(.tail)
 
                     Text(linkQualityDescription)
-                        .font(.system(size: size.detailFontSize))
+                        .font(.system(size: size.detailFontSize, weight: .medium))
                         .foregroundStyle(linkStatusColor)
                         .lineLimit(1)
                 }
@@ -933,37 +933,42 @@ enum SystemShortcut {
 
                 // Right: Bandwidth Cockpit (Live & Rolling Average)
                 VStack(alignment: .trailing, spacing: 2) {
-                    // Live Download & Upload Speeds
+                    // Live Download & Upload Speeds (Fixed size so never truncated)
                     HStack(spacing: size == .small ? 6 : 8) {
                         HStack(spacing: 2) {
                             Text("↓")
-                                .font(.system(size: size.detailFontSize + 1.5, weight: .bold))
+                                .font(.system(size: size.detailFontSize + 1, weight: .bold))
                                 .foregroundStyle(downloadColor)
                             Text(formatSpeed(health.networkDownloadKbSec))
-                                .font(.system(size: size.valueFontSize, weight: .semibold, design: .monospaced))
+                                .font(.system(size: size.valueFontSize, weight: .semibold))
+                                .monospacedDigit()
                                 .foregroundStyle(downloadColor)
                         }
 
                         HStack(spacing: 2) {
                             Text("↑")
-                                .font(.system(size: size.detailFontSize + 0.5, weight: .semibold))
+                                .font(.system(size: size.detailFontSize, weight: .semibold))
                                 .foregroundStyle(uploadColor)
                             Text(formatSpeed(health.networkUploadKbSec))
-                                .font(.system(size: size.titleFontSize + 0.5, weight: .medium, design: .monospaced))
+                                .font(.system(size: size.titleFontSize, weight: .medium))
+                                .monospacedDigit()
                                 .foregroundStyle(uploadColor)
                         }
                     }
+                    .fixedSize(horizontal: true, vertical: false)
 
-                    // Rolling 60s Average Speed
+                    // Rolling 10m Average Speed
                     HStack(spacing: 3) {
-                        Text("60s Avg:")
+                        Text("10m Avg:")
                             .font(.system(size: size.detailFontSize))
                             .foregroundStyle(.secondary)
 
                         Text("↓ \(formatSpeed(health.averageDownloadKbSec))")
-                            .font(.system(size: size.detailFontSize, weight: .medium, design: .monospaced))
+                            .font(.system(size: size.detailFontSize, weight: .medium))
+                            .monospacedDigit()
                             .foregroundStyle(averageColor)
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
             }
             .padding(.horizontal, size == .small ? 9 : 11)
@@ -973,7 +978,7 @@ enum SystemShortcut {
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
-        .help("Network: \(linkDisplayName) • \(linkQualityDescription)\nLive: ↓ \(formatSpeed(health.networkDownloadKbSec)), ↑ \(formatSpeed(health.networkUploadKbSec))\nRolling Avg: ↓ \(formatSpeed(health.averageDownloadKbSec)), ↑ \(formatSpeed(health.averageUploadKbSec))\nClick to open Dashboard")
+        .help("Network: \(linkDisplayNameAndDbm) • \(linkQualityDescription)\nLive: ↓ \(formatSpeed(health.networkDownloadKbSec)), ↑ \(formatSpeed(health.networkUploadKbSec))\n10m Avg: ↓ \(formatSpeed(health.averageDownloadKbSec)), ↑ \(formatSpeed(health.averageUploadKbSec))\nClick to open Dashboard")
         .contextMenu {
             Button("Open Dashboard Network Tab") { onOpenDashboard() }
             Button("Open macOS Network Settings...") { SystemShortcut.openNetworkSettings() }
@@ -982,7 +987,7 @@ enum SystemShortcut {
             Button("Copy Network Diagnostics") {
                 NSPasteboard.general.clearContents()
                 let ip = wifi.localIPv4.isEmpty ? "N/A" : wifi.localIPv4
-                let text = "Network: \(linkDisplayName), Quality: \(linkQualityDescription), IP: \(ip), Live: ↓ \(formatSpeed(health.networkDownloadKbSec)) ↑ \(formatSpeed(health.networkUploadKbSec)), Avg: ↓ \(formatSpeed(health.averageDownloadKbSec))"
+                let text = "Network: \(linkDisplayNameAndDbm), Quality: \(linkQualityDescription), IP: \(ip), Live: ↓ \(formatSpeed(health.networkDownloadKbSec)) ↑ \(formatSpeed(health.networkUploadKbSec)), 10m Avg: ↓ \(formatSpeed(health.averageDownloadKbSec))"
                 NSPasteboard.general.setString(text, forType: .string)
             }
         }

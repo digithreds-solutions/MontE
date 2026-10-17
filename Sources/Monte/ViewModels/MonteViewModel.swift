@@ -232,10 +232,10 @@ final class MonteViewModel {
         if health.ramHistory.count > 30 { health.ramHistory.removeFirst() }
 
         health.networkHistory.append(net.downloadKbSec)
-        if health.networkHistory.count > 30 { health.networkHistory.removeFirst() }
+        if health.networkHistory.count > 240 { health.networkHistory.removeFirst() }
 
         health.networkUploadHistory.append(net.uploadKbSec)
-        if health.networkUploadHistory.count > 30 { health.networkUploadHistory.removeFirst() }
+        if health.networkUploadHistory.count > 240 { health.networkUploadHistory.removeFirst() }
 
         // Evaluate proactive watchdog alerts
         WatchdogAlertService.shared.evaluate(health: health, settings: settings.watchdog)

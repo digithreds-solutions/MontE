@@ -11,6 +11,13 @@ struct LaunchAtLoginService {
             .appendingPathComponent("Library/LaunchAgents/\(launchAgentLabel).plist")
     }
 
+    private static var appPath: String {
+        if let path = Bundle.main.bundlePath as String?, path.hasSuffix(".app") {
+            return path
+        }
+        return "/Applications/Monte.app"
+    }
+
     static var isEnabled: Bool {
         get {
             MonteSettingsStore.shared.settings.launchAtLogin
@@ -41,51 +48,60 @@ struct LaunchAtLoginService {
     }
 
     private static func register() {
-        var smRegistered = false
-        // 1. SMAppService for macOS 13+ (Apple System Settings Login Items)
+        let path = appPath
+
+        // 1. AppleScript System Events Login Item (Standard macOS Settings -> General -> Login Items)
+        let addScript = """
+        tell application "System Events"
+            set existingItems to (every login item whose path contains "\(path)" or name is "Monte")
+            if (count of existingItems) is 0 then
+                make login item at end with properties {path:"\(path)", hidden:false}
+            end if
+        end tell
+        """
+        _ = ShellService.runSilent("osascript -e '\(addScript)' 2>/dev/null || true")
+
+        // 2. User LaunchAgent Plist Fallback (uses /usr/bin/open -a to launch cleanly with full windowing environment)
+        setupLaunchAgent(appPath: path)
+
+        // 3. SMAppService for macOS 13+ (System Settings Login Items integration)
         if #available(macOS 13.0, *) {
             do {
                 if SMAppService.mainApp.status != .enabled {
                     try SMAppService.mainApp.register()
                 }
-                if SMAppService.mainApp.status == .enabled {
-                    smRegistered = true
-                    // Remove fallback launch agent if SMAppService succeeded
-                    removeLaunchAgent()
-                }
             } catch {
                 NSLog("SMAppService registration notice: \(error.localizedDescription)")
             }
         }
-
-        // 2. Universal User LaunchAgent Plist Fallback (Survives ad-hoc signing, updates, & reboots)
-        if !smRegistered {
-            setupLaunchAgent()
-        }
     }
 
     private static func unregister() {
-        // 1. SMAppService
+        let path = appPath
+
+        // 1. Remove System Events Login Item
+        let removeScript = """
+        tell application "System Events"
+            delete (every login item whose path contains "\(path)")
+            delete (every login item whose name is "Monte")
+        end tell
+        """
+        _ = ShellService.runSilent("osascript -e '\(removeScript)' 2>/dev/null || true")
+
+        // 2. Remove User LaunchAgent Plist
+        removeLaunchAgent()
+
+        // 3. SMAppService unregister
         if #available(macOS 13.0, *) {
             if SMAppService.mainApp.status == .enabled {
                 try? SMAppService.mainApp.unregister()
             }
         }
-
-        // 2. LaunchAgent removal
-        removeLaunchAgent()
     }
 
-    private static func setupLaunchAgent() {
+    private static func setupLaunchAgent(appPath: String) {
         let launchAgentsDir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/LaunchAgents")
         try? FileManager.default.createDirectory(at: launchAgentsDir, withIntermediateDirectories: true)
-
-        let execPath: String = {
-            if let path = Bundle.main.executablePath, FileManager.default.isExecutableFile(atPath: path) {
-                return path
-            }
-            return "/Applications/Monte.app/Contents/MacOS/Monte"
-        }()
 
         let plistContent = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -96,7 +112,9 @@ struct LaunchAtLoginService {
             <string>\(launchAgentLabel)</string>
             <key>ProgramArguments</key>
             <array>
-                <string>\(execPath)</string>
+                <string>/usr/bin/open</string>
+                <string>-a</string>
+                <string>\(appPath)</string>
             </array>
             <key>RunAtLoad</key>
             <true/>
