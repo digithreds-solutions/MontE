@@ -68,3 +68,6 @@ Packages/*.dmg
 # General Temporary & Log Files
 *.log
 *.tmp
+
+# Local agent steering symlink
+.standards

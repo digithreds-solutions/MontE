@@ -1,1 +1,1 @@
-AGENTS.md
+.standards/AGENTS.md
