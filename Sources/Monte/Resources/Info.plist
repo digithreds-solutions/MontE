@@ -7,9 +7,9 @@
 	<key>CFBundleName</key>
 	<string>Monte</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.7.0</string>
+	<string>2.8.0</string>
 	<key>CFBundleVersion</key>
-	<string>2.7.0</string>
+	<string>2.8.0</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
