@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" width="960" height="380">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <linearGradient id="bar-monte" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <linearGradient id="bar-other" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+    <linearGradient id="bar-electron" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#f87171" />
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="380" rx="16" fill="url(#bg-grad)" stroke="#1e293b" stroke-width="1.5" />
+
+  <!-- Title & Intro -->
+  <g transform="translate(40, 36)">
+    <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#f8fafc">Resource Overhead Comparison</text>
+    <text x="0" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">Mont-E is built in pure Swift 6 with AppKit native integration, eliminating the battery drain of polling loops and web frameworks.</text>
+  </g>
+
+  <!-- Metric 1: Idle CPU Usage -->
+  <g transform="translate(40, 90)">
+    <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#cbd5e1">Idle CPU Overhead (Lower is better)</text>
+    
+    <!-- Mont-E Bar -->
+    <g transform="translate(0, 30)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#34d399">Mont-E (Native Swift 6)</text>
+      <rect x="180" y="4" width="12" height="18" rx="4" fill="url(#bar-monte)" />
+      <text x="200" y="18" font-family="-apple-system, monospace" font-size="12" font-weight="700" fill="#34d399">0.0%  (Zero animation wakeups)</text>
+    </g>
+
+    <!-- Standard Polling Apps -->
+    <g transform="translate(0, 58)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Standard Mac Monitors</text>
+      <rect x="180" y="4" width="140" height="18" rx="4" fill="url(#bar-other)" />
+      <text x="330" y="18" font-family="-apple-system, monospace" font-size="12" fill="#94a3b8">2.5% - 3.8%</text>
+    </g>
+
+    <!-- Electron Monitors -->
+    <g transform="translate(0, 86)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Electron / Web Tools</text>
+      <rect x="180" y="4" width="320" height="18" rx="4" fill="url(#bar-electron)" fill-opacity="0.7" />
+      <text x="510" y="18" font-family="-apple-system, monospace" font-size="12" fill="#f87171">6.5% - 8.5%</text>
+    </g>
+  </g>
+
+  <!-- Metric 2: Memory Footprint (RSS) -->
+  <g transform="translate(40, 230)">
+    <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#cbd5e1">Resident Memory Footprint (RSS)</text>
+    
+    <!-- Mont-E Bar -->
+    <g transform="translate(0, 30)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#34d399">Mont-E (Native)</text>
+      <rect x="180" y="4" width="45" height="18" rx="4" fill="url(#bar-monte)" />
+      <text x="235" y="18" font-family="-apple-system, monospace" font-size="12" font-weight="700" fill="#34d399">42 MB</text>
+    </g>
+
+    <!-- Standard Native Monitors -->
+    <g transform="translate(0, 58)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Standard Mac Monitors</text>
+      <rect x="180" y="4" width="170" height="18" rx="4" fill="url(#bar-other)" />
+      <text x="360" y="18" font-family="-apple-system, monospace" font-size="12" fill="#94a3b8">160 MB</text>
+    </g>
+
+    <!-- Electron Monitors -->
+    <g transform="translate(0, 86)">
+      <text x="0" y="16" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Electron / Web Tools</text>
+      <rect x="180" y="4" width="480" height="18" rx="4" fill="url(#bar-electron)" fill-opacity="0.7" />
+      <text x="670" y="18" font-family="-apple-system, monospace" font-size="12" fill="#f87171">550+ MB</text>
+    </g>
+  </g>
+</svg>

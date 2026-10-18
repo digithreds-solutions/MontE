@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <linearGradient id="hud-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="menubar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="card-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.8" />
+    </linearGradient>
+    <radialGradient id="led-green" cx="35%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#86efac" />
+      <stop offset="60%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#15803d" />
+    </radialGradient>
+    <radialGradient id="led-blue" cx="35%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#93c5fd" />
+      <stop offset="60%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </radialGradient>
+    <filter id="hud-shadow" x="-5%" y="-5%" width="115%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.7" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="620" rx="16" fill="url(#hud-bg)" />
+  <rect width="1000" height="620" rx="16" fill="none" stroke="#1e293b" stroke-width="1.5" />
+
+  <!-- macOS Top Menu Bar Mockup -->
+  <g transform="translate(0, 0)">
+    <rect width="1000" height="36" fill="url(#menubar-grad)" />
+    <line x1="0" y1="36" x2="1000" y2="36" stroke="#334155" stroke-width="0.8" />
+    
+    <!-- Apple Logo & Left Menu Items -->
+    <text x="24" y="23" font-family="-apple-system, sans-serif" font-size="14" fill="#e2e8f0"></text>
+    <text x="52" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">Mont-E</text>
+    <text x="116" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">File</text>
+    <text x="154" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">Edit</text>
+    <text x="194" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">View</text>
+    <text x="242" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">Window</text>
+
+    <!-- Right Side Tray: Mont-E Active Menu Extra -->
+    <g transform="translate(560, 4)">
+      <!-- Active Menu Selection Box -->
+      <rect x="0" y="0" width="340" height="28" rx="6" fill="#334155" fill-opacity="0.7" />
+      
+      <!-- 3D LED Status Dot -->
+      <circle cx="16" cy="14" r="6" fill="#052e16" />
+      <circle cx="16" cy="14" r="4.5" fill="url(#led-green)" />
+      <circle cx="14.5" cy="12.5" r="1.2" fill="#ffffff" opacity="0.8" />
+
+      <!-- Tray Metrics -->
+      <text x="28" y="18" font-family="-apple-system, monospace" font-size="11.5" font-weight="600" fill="#f8fafc">RAM: 14.2G</text>
+      <text x="108" y="18" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">|</text>
+      <text x="118" y="18" font-family="-apple-system, monospace" font-size="11.5" font-weight="600" fill="#f8fafc">CPU: 12%</text>
+      <text x="184" y="18" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">|</text>
+      <text x="194" y="18" font-family="-apple-system, monospace" font-size="11.5" font-weight="600" fill="#f8fafc">Batt: 80% ⚡</text>
+      <text x="272" y="18" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">|</text>
+      <text x="282" y="18" font-family="-apple-system, monospace" font-size="11.5" font-weight="600" fill="#38bdf8">↓ 40K</text>
+    </g>
+
+    <!-- Time on far right -->
+    <text x="960" y="22" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12.5" font-weight="500" fill="#cbd5e1">Mon Oct 18  9:41 AM</text>
+  </g>
+
+  <!-- Left: The Dropdown HUD Window (Exact 332pt Medium Layout) -->
+  <g transform="translate(60, 56)" filter="url(#hud-shadow)">
+    <!-- Window Container -->
+    <rect width="364" height="520" rx="14" fill="#090d16" stroke="#334155" stroke-width="1" />
+    
+    <!-- HUD Header -->
+    <g transform="translate(16, 20)">
+      <text x="0" y="10" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">Mont-E</text>
+      <!-- 3D LED Dot -->
+      <circle cx="66" cy="6" r="5.5" fill="#052e16" />
+      <circle cx="66" cy="6" r="4" fill="url(#led-green)" />
+      <circle cx="64.5" cy="4.5" r="1" fill="#ffffff" opacity="0.8" />
+      <text x="78" y="10" font-family="-apple-system, sans-serif" font-size="11.5" font-weight="500" fill="#94a3b8">Normal Health</text>
+      <!-- Refresh Icon -->
+      <text x="328" y="10" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12" fill="#64748b">↻</text>
+    </g>
+
+    <!-- Full-Width Smart Network Cockpit Strip -->
+    <g transform="translate(16, 42)">
+      <rect width="332" height="46" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="0.8" />
+      <!-- Wi-Fi Icon & Indicator -->
+      <circle cx="22" cy="23" r="10" fill="#0284c7" fill-opacity="0.15" />
+      <path d="M17 20 A7 7 0 0 1 27 20 M19 23 A4 4 0 0 1 25 23 M22 25.5 A1 1 0 1 1 22 25.6" stroke="#38bdf8" stroke-width="1.8" fill="none" stroke-linecap="round" />
+      <circle cx="27" cy="27" r="3" fill="#10b981" />
+      <!-- Left side text -->
+      <text x="40" y="19" font-family="-apple-system, sans-serif" font-size="12.5" font-weight="600" fill="#f8fafc">Wi-Fi (-26 dBm)</text>
+      <text x="40" y="33" font-family="-apple-system, sans-serif" font-size="10" font-weight="500" fill="#10b981">Excellent Link</text>
+      <!-- Right side text -->
+      <text x="320" y="19" text-anchor="end" font-family="-apple-system, monospace" font-size="12" font-weight="600" fill="#38bdf8">↓ 40 KB/s  ↑ 467 KB/s</text>
+      <text x="320" y="33" text-anchor="end" font-family="-apple-system, monospace" font-size="9.5" font-weight="500" fill="#94a3b8">10m Avg: ↓ 17 KB/s</text>
+    </g>
+
+    <!-- 2-Column Telemetry Grid (6 Tiles) -->
+    <!-- Tile 1: CPU -->
+    <g transform="translate(16, 98)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">CPU</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">12%</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#64748b">6% P • 3% E-Cores</text>
+    </g>
+    <!-- Tile 2: GPU -->
+    <g transform="translate(187, 98)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">GPU Load</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">4%</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#64748b">1.2 GB VRAM</text>
+    </g>
+
+    <!-- Tile 3: Memory -->
+    <g transform="translate(16, 158)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">Memory</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">14.2 GB</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#64748b">44% used</text>
+    </g>
+    <!-- Tile 4: SSD Swap -->
+    <g transform="translate(187, 158)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">SSD Swap</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">0.0 GB</text>
+      <rect x="58" y="24" width="3" height="10" rx="1" fill="#10b981" />
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#64748b">Safe (No Wear)</text>
+    </g>
+
+    <!-- Tile 5: Battery -->
+    <g transform="translate(16, 218)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">Battery</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">80%</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#38bdf8">Pass-Through (80%)</text>
+    </g>
+    <!-- Tile 6: Storage -->
+    <g transform="translate(187, 218)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">APFS Storage</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">342 GB Free</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#64748b">66% of 1000G</text>
+    </g>
+
+    <!-- Tile 7: Battery Health -->
+    <g transform="translate(16, 278)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">Battery Health</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">18 Cycles</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#10b981">100% • Normal</text>
+    </g>
+    <!-- Tile 8: SSD Health -->
+    <g transform="translate(187, 278)">
+      <rect width="161" height="52" rx="8" fill="url(#card-bg)" stroke="#1e293b" stroke-width="0.8" />
+      <text x="10" y="17" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">SSD Health</text>
+      <text x="10" y="34" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#f8fafc">4.2 TB TBW</text>
+      <text x="10" y="46" font-family="-apple-system, sans-serif" font-size="9.5" fill="#10b981">0% Wear • Verified</text>
+    </g>
+
+    <!-- Bottom Actions Divider -->
+    <line x1="16" y1="344" x2="348" y2="344" stroke="#1e293b" stroke-width="1" />
+    
+    <!-- Menu Action Rows -->
+    <g transform="translate(16, 360)">
+      <text x="0" y="14" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Free RAM (Purge Inactive Caches)</text>
+      <text x="332" y="14" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">⌘O</text>
+      
+      <text x="0" y="38" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Keep-Awake Presets</text>
+      <text x="332" y="38" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">▶</text>
+      
+      <text x="0" y="62" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Battery Charge Limiter (80% Active)</text>
+      <text x="332" y="62" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#38bdf8">⚡</text>
+
+      <text x="0" y="86" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Open Mont-E Dashboard Overview</text>
+      <text x="332" y="86" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">⌘M</text>
+
+      <text x="0" y="110" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Process Investigator (CPU &amp; RAM)</text>
+      <text x="332" y="110" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">⌘P</text>
+
+      <text x="0" y="134" font-family="-apple-system, sans-serif" font-size="12" fill="#f1f5f9">Preferences &amp; Settings...</text>
+      <text x="332" y="134" text-anchor="end" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">⌘,</text>
+    </g>
+  </g>
+
+  <!-- Right: Architecture & Engineering Feature Callouts -->
+  <g transform="translate(480, 75)">
+    <!-- Callout 1 -->
+    <g transform="translate(0, 0)">
+      <rect width="460" height="95" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+      <circle cx="24" cy="24" r="12" fill="#0284c7" fill-opacity="0.2" />
+      <text x="24" y="28" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#38bdf8">1</text>
+      <text x="48" y="28" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">Smart Network Cockpit Strip</text>
+      <text x="48" y="50" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Consolidated top-level header showing Wi-Fi dBm, link quality,</text>
+      <text x="48" y="68" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">live differential speeds, and a 10-minute rolling average ring buffer.</text>
+    </g>
+
+    <!-- Callout 2 -->
+    <g transform="translate(0, 115)">
+      <rect width="460" height="95" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+      <circle cx="24" cy="24" r="12" fill="#10b981" fill-opacity="0.2" />
+      <text x="24" y="28" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#34d399">2</text>
+      <text x="48" y="28" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">Apple Silicon SMC Battery Limiter</text>
+      <text x="48" y="50" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Direct AC Pass-Through cuts current to battery cells when capped,</text>
+      <text x="48" y="68" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">preventing swelling and cycle wear during continuous desk docking.</text>
+    </g>
+
+    <!-- Callout 3 -->
+    <g transform="translate(0, 230)">
+      <rect width="460" height="95" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+      <circle cx="24" cy="24" r="12" fill="#6366f1" fill-opacity="0.2" />
+      <text x="24" y="28" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#818cf8">3</text>
+      <text x="48" y="28" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">P-Core vs. E-Core Topological Profiling</text>
+      <text x="48" y="50" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Mach kernel host_processor_info maps load across Performance and</text>
+      <text x="48" y="68" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Efficiency core clusters to identify throttling and background drain.</text>
+    </g>
+
+    <!-- Callout 4 -->
+    <g transform="translate(0, 345)">
+      <rect width="460" height="95" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+      <circle cx="24" cy="24" r="12" fill="#f59e0b" fill-opacity="0.2" />
+      <text x="24" y="28" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#fbbf24">4</text>
+      <text x="48" y="28" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">SSD Swap &amp; Developer Cache Cleaners</text>
+      <text x="48" y="50" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Monitors sysctl vm.swapusage risk levels and provides 1-click</text>
+      <text x="48" y="68" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">purges for Xcode DerivedData and AI Agent brain cache files.</text>
+    </g>
+
+    <!-- Bottom Specs Pill -->
+    <g transform="translate(0, 460)">
+      <rect width="460" height="36" rx="8" fill="#091322" stroke="#38bdf8" stroke-width="0.8" stroke-opacity="0.4" />
+      <text x="230" y="23" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#38bdf8">Pure Swift 6 • AppKit &amp; SwiftUI • No Electron • Zero Idle Overhead</text>
+    </g>
+  </g>
+</svg>

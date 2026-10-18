@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <radialGradient id="cyan-glow" cx="20%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0" />
+    </radialGradient>
+    <radialGradient id="indigo-glow" cx="80%" cy="70%" r="60%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.20" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.0" />
+    </radialGradient>
+    
+    <!-- Accent Gradients -->
+    <linearGradient id="title-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#f1f5f9" />
+      <stop offset="100%" stop-color="#94a3b8" />
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.85" />
+    </linearGradient>
+    <linearGradient id="badge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.10" />
+    </linearGradient>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Base Background -->
+  <rect width="1200" height="420" rx="20" fill="url(#bg-grad)" />
+  <rect width="1200" height="420" rx="20" fill="url(#cyan-glow)" />
+  <rect width="1200" height="420" rx="20" fill="url(#indigo-glow)" />
+  <rect width="1200" height="420" rx="20" fill="none" stroke="#334155" stroke-width="1.5" stroke-opacity="0.6" />
+
+  <!-- Subtle Tech Grid Lines -->
+  <g stroke="#334155" stroke-width="0.5" stroke-opacity="0.2" stroke-dasharray="4,8">
+    <line x1="80" y1="0" x2="80" y2="420" />
+    <line x1="280" y1="0" x2="280" y2="420" />
+    <line x1="480" y1="0" x2="480" y2="420" />
+    <line x1="680" y1="0" x2="680" y2="420" />
+    <line x1="880" y1="0" x2="880" y2="420" />
+    <line x1="1080" y1="0" x2="1080" y2="420" />
+    <line x1="0" y1="100" x2="1200" y2="100" />
+    <line x1="0" y1="210" x2="1200" y2="210" />
+    <line x1="0" y1="320" x2="1200" y2="320" />
+  </g>
+
+  <!-- Left Content Column -->
+  <g transform="translate(80, 55)">
+    <!-- Release Badge -->
+    <g transform="translate(0, 0)">
+      <rect width="285" height="28" rx="14" fill="url(#badge-grad)" stroke="#38bdf8" stroke-width="0.8" stroke-opacity="0.5" />
+      <circle cx="14" cy="14" r="4" fill="#10b981" />
+      <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#38bdf8" letter-spacing="0.4">MAC TELEMETRY &amp; HARDWARE SUITE</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="90" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="62" font-weight="800" fill="url(#title-grad)" letter-spacing="-1.5">Mont-E</text>
+    
+    <!-- Subtitle / Value Proposition -->
+    <text x="0" y="128" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="20" font-weight="600" fill="url(#accent-grad)" letter-spacing="-0.2">Hardware Telemetry &amp; Battery Longevity Cockpit</text>
+    
+    <text x="0" y="162" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="15" font-weight="400" fill="#94a3b8" width="550">
+      Engineered natively in pure Swift 6 for Apple Silicon (M1-M4) &amp; Intel.
+    </text>
+    <text x="0" y="184" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="15" font-weight="400" fill="#94a3b8">
+      0.0% idle CPU overhead, SMC charge limits &amp; real-time core telemetry.
+    </text>
+
+    <!-- Capability Highlights / Badges Row -->
+    <g transform="translate(0, 230)">
+      <!-- Pill 1: Swift 6 -->
+      <g transform="translate(0, 0)">
+        <rect width="120" height="32" rx="6" fill="#1e293b" fill-opacity="0.8" stroke="#475569" stroke-width="0.8" />
+        <text x="60" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#f8fafc">Swift 6 Native</text>
+      </g>
+      <!-- Pill 2: 0% Idle CPU -->
+      <g transform="translate(130, 0)">
+        <rect width="125" height="32" rx="6" fill="#1e293b" fill-opacity="0.8" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.6" />
+        <text x="62" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#34d399">0.0% Idle CPU</text>
+      </g>
+      <!-- Pill 3: SMC Charge Limit -->
+      <g transform="translate(265, 0)">
+        <rect width="145" height="32" rx="6" fill="#1e293b" fill-opacity="0.8" stroke="#475569" stroke-width="0.8" />
+        <text x="72" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#f8fafc">80% SMC Limiter</text>
+      </g>
+      <!-- Pill 4: Direct Pass-Through -->
+      <g transform="translate(420, 0)">
+        <rect width="155" height="32" rx="6" fill="#1e293b" fill-opacity="0.8" stroke="#475569" stroke-width="0.8" />
+        <text x="77" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#f8fafc">AC Pass-Through</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Visual Card: Live Floating Hardware Cockpit Widget -->
+  <g transform="translate(740, 50)" filter="url(#card-shadow)">
+    <rect width="380" height="320" rx="16" fill="url(#card-grad)" stroke="#475569" stroke-width="1" stroke-opacity="0.7" />
+    
+    <!-- Window Bar Header -->
+    <g transform="translate(16, 16)">
+      <circle cx="6" cy="6" r="5" fill="#ef4444" opacity="0.8" />
+      <circle cx="24" cy="6" r="5" fill="#f59e0b" opacity="0.8" />
+      <circle cx="42" cy="6" r="5" fill="#10b981" opacity="0.8" />
+      <text x="174" y="10" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11.5" font-weight="600" fill="#cbd5e1">Mont-E Live Telemetry</text>
+    </g>
+
+    <!-- Network Cockpit Strip -->
+    <g transform="translate(16, 42)">
+      <rect width="348" height="44" rx="8" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+      <!-- Wi-Fi Icon & Signal -->
+      <circle cx="22" cy="22" r="10" fill="#0284c7" fill-opacity="0.2" />
+      <path d="M17 19 A7 7 0 0 1 27 19 M19 22 A4 4 0 0 1 25 22 M22 24.5 A1 1 0 1 1 22 24.6" stroke="#38bdf8" stroke-width="1.8" fill="none" stroke-linecap="round" />
+      <circle cx="27" cy="27" r="3" fill="#10b981" />
+      <!-- Left text -->
+      <text x="40" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" fill="#f8fafc">Wi-Fi (-26 dBm)</text>
+      <text x="40" y="32" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="600" fill="#10b981">Excellent Link</text>
+      <!-- Right text -->
+      <text x="336" y="18" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="11.5" font-weight="700" fill="#38bdf8">↓ 40 KB/s  ↑ 467 KB/s</text>
+      <text x="336" y="32" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="9.5" font-weight="500" fill="#94a3b8">10m Avg: ↓ 17 KB/s</text>
+    </g>
+
+    <!-- 4 Key Telemetry Grid Tiles -->
+    <!-- Tile 1: CPU -->
+    <g transform="translate(16, 96)">
+      <rect width="170" height="52" rx="8" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+      <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#94a3b8">CPU Load</text>
+      <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">12%</text>
+      <text x="12" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="500" fill="#64748b">6% P • 3% E-Cores</text>
+      <circle cx="152" cy="26" r="6" fill="#10b981" />
+    </g>
+
+    <!-- Tile 2: GPU -->
+    <g transform="translate(194, 96)">
+      <rect width="170" height="52" rx="8" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+      <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#94a3b8">Apple GPU</text>
+      <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">4%</text>
+      <text x="12" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="500" fill="#64748b">1.2 GB VRAM Active</text>
+      <circle cx="152" cy="26" r="6" fill="#38bdf8" />
+    </g>
+
+    <!-- Tile 3: Memory -->
+    <g transform="translate(16, 156)">
+      <rect width="170" height="52" rx="8" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+      <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#94a3b8">Unified Memory</text>
+      <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">14.2 GB</text>
+      <text x="12" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="500" fill="#64748b">44% of 32 GB Used</text>
+    </g>
+
+    <!-- Tile 4: Battery SMC -->
+    <g transform="translate(194, 156)">
+      <rect width="170" height="52" rx="8" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+      <text x="12" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#94a3b8">Battery Limiter</text>
+      <text x="12" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#f8fafc">80% Cap</text>
+      <text x="12" y="46" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="600" fill="#0284c7">Pass-Through (80%)</text>
+      <circle cx="152" cy="26" r="6" fill="#0284c7" />
+    </g>
+
+    <!-- Bottom Status Banner -->
+    <g transform="translate(16, 218)">
+      <rect width="348" height="44" rx="8" fill="#091322" stroke="#1e293b" stroke-width="0.8" />
+      <text x="14" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">SSD Swap Wear Shield</text>
+      <text x="14" y="32" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" font-weight="500" fill="#10b981">0.0 MB Active Swap • Zero NAND thrashing</text>
+      <rect x="260" y="12" width="74" height="20" rx="10" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="0.8" />
+      <text x="297" y="26" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9.5" font-weight="700" fill="#10b981">OPTIMAL</text>
+    </g>
+
+    <!-- Bottom Footer Tag -->
+    <g transform="translate(16, 275)">
+      <text x="0" y="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="500" fill="#64748b">Direct Kernel Telemetry • Mach &amp; IOKit Fast-Path</text>
+      <text x="348" y="20" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="600" fill="#38bdf8">Mont-E v2.7</text>
+    </g>
+  </g>
+</svg>

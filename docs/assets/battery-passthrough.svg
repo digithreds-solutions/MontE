@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="960" height="320">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <linearGradient id="power-active" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="box-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Container -->
+  <rect width="960" height="320" rx="16" fill="url(#bg)" stroke="#1e293b" stroke-width="1.5" />
+
+  <!-- Section Header -->
+  <g transform="translate(40, 32)">
+    <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#f8fafc">Apple Silicon Direct AC Pass-Through Architecture</text>
+    <text x="0" y="22" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#94a3b8">When the target threshold is reached (e.g. 80%), Mont-E signals the SMC to switch operating power entirely to the wall adapter.</text>
+  </g>
+
+  <!-- Block 1: AC Wall Power -->
+  <g transform="translate(40, 85)">
+    <rect width="240" height="160" rx="12" fill="url(#box-bg)" stroke="#38bdf8" stroke-width="1" />
+    <circle cx="32" cy="34" r="14" fill="#0284c7" fill-opacity="0.2" />
+    <text x="32" y="40" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="14" fill="#38bdf8">⚡</text>
+    <text x="58" y="38" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#f8fafc">Power Adapter</text>
+    <text x="20" y="72" font-family="-apple-system, sans-serif" font-size="12" fill="#cbd5e1">MagSafe 3 / USB-C PD</text>
+    <text x="20" y="94" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8">• Direct Voltage Delivery</text>
+    <text x="20" y="114" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8">• Continuous Clean Power</text>
+    <rect x="20" y="128" width="120" height="20" rx="10" fill="#0284c7" fill-opacity="0.2" />
+    <text x="80" y="142" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#38bdf8">PRIMARY SOURCE</text>
+  </g>
+
+  <!-- Arrow 1: Active Direct Power Flow -->
+  <g transform="translate(290, 150)">
+    <line x1="0" y1="15" x2="60" y2="15" stroke="url(#power-active)" stroke-width="3" stroke-dasharray="6,3" />
+    <polygon points="60,10 70,15 60,20" fill="#10b981" />
+    <text x="35" y="6" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10.5" font-weight="700" fill="#10b981">100% POWER</text>
+  </g>
+
+  <!-- Block 2: Logic Board & Apple Silicon SoC -->
+  <g transform="translate(370, 85)">
+    <rect width="240" height="160" rx="12" fill="url(#box-bg)" stroke="#10b981" stroke-width="1.5" />
+    <circle cx="32" cy="34" r="14" fill="#10b981" fill-opacity="0.2" />
+    <text x="32" y="40" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="14" fill="#10b981">💻</text>
+    <text x="58" y="38" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#f8fafc">Logic Board &amp; SoC</text>
+    <text x="20" y="72" font-family="-apple-system, sans-serif" font-size="12" fill="#cbd5e1">Apple Silicon M-Series</text>
+    <text x="20" y="94" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8">• Powered by Adapter</text>
+    <text x="20" y="114" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8">• Peak Performance Active</text>
+    <rect x="20" y="128" width="150" height="20" rx="10" fill="#10b981" fill-opacity="0.15" />
+    <text x="95" y="142" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#10b981">DIRECT PASS-THROUGH</text>
+  </g>
+
+  <!-- Arrow 2: Blocked / Isolated Flow to Battery -->
+  <g transform="translate(620, 150)">
+    <line x1="0" y1="15" x2="60" y2="15" stroke="#475569" stroke-width="2" stroke-dasharray="4,4" />
+    <!-- Lock / Inhibit Icon -->
+    <circle cx="30" cy="15" r="9" fill="#dc2626" />
+    <text x="30" y="19" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#ffffff">✕</text>
+    <text x="30" y="36" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#ef4444">BCLM INHIBIT</text>
+  </g>
+
+  <!-- Block 3: Battery Cells (Protected) -->
+  <g transform="translate(690, 85)">
+    <rect width="230" height="160" rx="12" fill="url(#box-bg)" stroke="#475569" stroke-width="1" />
+    <circle cx="32" cy="34" r="14" fill="#0284c7" fill-opacity="0.15" />
+    <text x="32" y="40" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="14" fill="#38bdf8">🔋</text>
+    <text x="58" y="38" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#f8fafc">Battery Cells</text>
+    <text x="20" y="72" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8">Charge Held at 80% Cap</text>
+    <text x="20" y="94" font-family="-apple-system, sans-serif" font-size="11" fill="#10b981">✓ Zero Charging Current</text>
+    <text x="20" y="114" font-family="-apple-system, sans-serif" font-size="11" fill="#10b981">✓ Zero Chemical Degradation</text>
+    <rect x="20" y="128" width="135" height="20" rx="10" fill="#334155" />
+    <text x="87" y="142" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#94a3b8">CYCLES PROTECTED</text>
+  </g>
+
+  <!-- Footer Insight Pill -->
+  <g transform="translate(40, 270)">
+    <rect width="880" height="28" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="0.8" />
+    <text x="440" y="18" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8">
+      Result: Eliminates high-voltage battery stress and thermal expansion during prolonged desk docking, extending cell lifespan by years.
+    </text>
+  </g>
+</svg>
