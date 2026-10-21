@@ -1,12 +1,12 @@
 import Foundation
 import ServiceManagement
 
-// MARK: - Bulletproof Dual-Engine Launch at Login Service (SMAppService + User LaunchAgent)
+// MARK: - Bulletproof Triple-Engine Launch at Login Service (SMAppService + LaunchAgent + System Events)
 
 struct LaunchAtLoginService {
     private static let launchAgentLabel = "com.digithreads.monte"
     
-    private static var launchAgentPlistURL: URL {
+    static var launchAgentPlistURL: URL {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/LaunchAgents/\(launchAgentLabel).plist")
     }
@@ -18,15 +18,40 @@ struct LaunchAtLoginService {
         return "/Applications/Monte.app"
     }
 
+    /// Fast, non-blocking check whether Monte is registered in the OS (via LaunchAgent file or SMAppService status)
+    static var isRegisteredWithSystem: Bool {
+        if FileManager.default.fileExists(atPath: launchAgentPlistURL.path) {
+            return true
+        }
+        if #available(macOS 13.0, *) {
+            if SMAppService.mainApp.status == .enabled {
+                return true
+            }
+        }
+        return false
+    }
+
     static var isEnabled: Bool {
         get {
-            MonteSettingsStore.shared.settings.launchAtLogin
+            if isRegisteredWithSystem {
+                return true
+            }
+            return MonteSettingsStore.shared.settings.launchAtLogin
         }
         set {
             var s = MonteSettingsStore.shared.settings
             s.launchAtLogin = newValue
             MonteSettingsStore.shared.settings = s
             setEnabled(newValue)
+        }
+    }
+
+    /// Opens macOS System Settings directly to the Login Items pane
+    static func openSystemLoginItems() {
+        if #available(macOS 13.0, *) {
+            SMAppService.openSystemSettingsLoginItems()
+        } else {
+            _ = ShellService.runSilent("open 'x-apple.systempreferences:com.apple.LoginItems-Settings.extension' 2>/dev/null || open '/System/Library/PreferencePanes/Accounts.prefPane' 2>/dev/null")
         }
     }
 
@@ -43,8 +68,12 @@ struct LaunchAtLoginService {
 
     /// Ensures login items and launch agents are active on startup if enabled in settings
     static func ensureSynchronized() {
-        let shouldBeEnabled = MonteSettingsStore.shared.settings.launchAtLogin
-        setEnabled(shouldBeEnabled)
+        let shouldBeEnabled = MonteSettingsStore.shared.settings.launchAtLogin || isRegisteredWithSystem
+        if shouldBeEnabled {
+            setEnabled(true)
+        } else {
+            setEnabled(false)
+        }
     }
 
     private static func register() {
@@ -55,7 +84,7 @@ struct LaunchAtLoginService {
         tell application "System Events"
             set existingItems to (every login item whose path contains "\(path)" or name is "Monte")
             if (count of existingItems) is 0 then
-                make login item at end with properties {path:"\(path)", hidden:false}
+                make new login item at end of login items with properties {name:"Monte", path:"\(path)", hidden:false}
             end if
         end tell
         """

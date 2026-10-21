@@ -567,9 +567,13 @@ final class MonteSettingsStore: @unchecked Sendable {
         get {
             guard
                 let data = defaults.data(forKey: key),
-                let decoded = try? JSONDecoder().decode(MonteSettings.self, from: data)
+                var decoded = try? JSONDecoder().decode(MonteSettings.self, from: data)
             else {
                 return .default
+            }
+            // Auto-heal launchAtLogin if active in the system
+            if LaunchAtLoginService.isRegisteredWithSystem && !decoded.launchAtLogin {
+                decoded.launchAtLogin = true
             }
             return decoded
         }

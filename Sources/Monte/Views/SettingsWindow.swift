@@ -801,9 +801,33 @@ struct ActiveKeepAwakeItem: Identifiable {
 
             // 1. Launch and Wake Behavior
             SettingsSectionRow(label: "Launch and Wake Behavior:") {
-                Toggle("Launch Mont-E automatically at login", isOn: $viewModel.settings.launchAtLogin)
-                    .font(.system(size: 12))
-                    .toggleStyle(.checkbox)
+                Toggle("Launch Mont-E automatically at login", isOn: Binding(
+                    get: { LaunchAtLoginService.isEnabled },
+                    set: { newValue in
+                        viewModel.settings.launchAtLogin = newValue
+                        LaunchAtLoginService.isEnabled = newValue
+                    }
+                ))
+                .font(.system(size: 12))
+                .toggleStyle(.checkbox)
+
+                HStack(spacing: 8) {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(LaunchAtLoginService.isRegisteredWithSystem ? Color.green : Color.secondary.opacity(0.4))
+                            .frame(width: 7, height: 7)
+                        Text(LaunchAtLoginService.isRegisteredWithSystem ? "Active in macOS Login Items" : "Not registered with system")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(LaunchAtLoginService.isRegisteredWithSystem ? .primary : .secondary)
+                    }
+
+                    Button("Open macOS Login Items Settings…") {
+                        LaunchAtLoginService.openSystemLoginItems()
+                    }
+                    .buttonStyle(.link)
+                    .font(.system(size: 11))
+                }
+                .padding(.top, 1)
 
                 SettingsSubHint(text: "Runs silently as a native menu bar background agent without Dock clutter")
 

@@ -339,7 +339,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // ── Divider ───────────────────────────────────────────────────────────
         menu.addItem(.separator())
 
-        // ── 7. Preferences & About ────────────────────────────────────────────
+        // ── 7. Preferences, Startup & About ───────────────────────────────────
+        let startAtLoginItem = NSMenuItem(title: "Start at Login", action: #selector(toggleStartAtLogin), keyEquivalent: "")
+        startAtLoginItem.state = LaunchAtLoginService.isEnabled ? .on : .off
+        startAtLoginItem.image = NSImage(systemSymbolName: "arrow.clockwise.circle", accessibilityDescription: "Start at Login")
+        startAtLoginItem.target = self
+        menu.addItem(startAtLoginItem)
+
         let prefItem = NSMenuItem(title: "Settings & HUD Config…", action: #selector(openPreferences), keyEquivalent: ",")
         prefItem.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Settings")
         prefItem.target = self
@@ -383,6 +389,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 hv.frame = NSRect(x: 0, y: 0, width: hudWidth, height: targetHeight)
             }
         }
+        if let item = menu.item(withTitle: "Start at Login") {
+            item.state = LaunchAtLoginService.isEnabled ? .on : .off
+        }
         Task { @MainActor in
             await viewModel.refresh(forceStorage: false)
             self.updateStatusItemTitle()
@@ -390,6 +399,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func toggleStartAtLogin() {
+        let newState = !LaunchAtLoginService.isEnabled
+        LaunchAtLoginService.isEnabled = newState
+        viewModel.settings.launchAtLogin = newState
+        if let item = statusItem.menu?.item(withTitle: "Start at Login") {
+            item.state = newState ? .on : .off
+        }
+    }
 
     @objc private func optimizeMemory() {
         Task {

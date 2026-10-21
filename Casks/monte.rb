@@ -1,6 +1,6 @@
 cask "monte" do
-  version "2.7.0"
-  sha256 "f3c43fca4180e2307a27f1d48d5cf522df584a653d2bc5e6573caf6260bec54c"
+  version "2.9.0"
+  sha256 "ee5bce9b1a277121524e381b29bb260644a9782b95fe6f6f1c70fc11327e5883"
 
   url "https://github.com/digithreds-solutions/MontE/releases/download/v#{version}/Monte-#{version}.dmg"
   name "Mont-E"
