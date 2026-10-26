@@ -413,4 +413,19 @@ public struct LifetimeThermalStats: Equatable, Codable, Sendable {
             return ("Elevated Heat Exposure", .red)
         }
     }
+
+    public var currentThermalStatus: (label: String, color: Color) {
+        guard let cur = currentTemperatureCelsius ?? averageTemperatureCelsius else {
+            return ("Unavailable", .secondary)
+        }
+        if cur < 32.0 {
+            return ("Cool / Nominal", .green)
+        } else if cur < 38.0 {
+            return ("Normal Workload", .mint)
+        } else if cur < 45.0 {
+            return ("Warm / Under Load", .orange)
+        } else {
+            return ("Elevated Heat", .red)
+        }
+    }
 }

@@ -1038,7 +1038,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
             // Live CPU & Thermal Card
             CpuThermalCard(health: h)
 
-            // Lifetime & Average Hardware Thermals Card
+            // Hardware Thermals & Lifetime History Card (Pull-Only)
             AverageThermalCard(viewModel: viewModel)
 
             // Apple Silicon P-Core vs E-Core Cluster Grid
@@ -1156,7 +1156,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                 onOpenSettings(.battery)
             })
 
-            // Lifetime & Average Hardware Thermals Card (Direct Thermal Stress Impact)
+            // Hardware Thermals & Lifetime History Card (Direct Thermal Stress Impact)
             AverageThermalCard(viewModel: viewModel)
 
             // Battery Longevity Recommendations & Direct Pass-Through Info
@@ -1552,7 +1552,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
     }
 }
 
-// MARK: - Average Thermals & Lifetime History Card (Strictly On-Demand)
+// MARK: - Hardware Thermals & Lifetime History Card (Strictly On-Demand Pull)
 
 @MainActor private struct AverageThermalCard: View {
     @Bindable var viewModel: MonteViewModel
@@ -1560,16 +1560,16 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
     private var stats: LifetimeThermalStats? { viewModel.lifetimeThermalStats }
 
     var body: some View {
-        MacDashCard(title: "Average Thermals & Lifetime History", systemIcon: "thermometer.medium", iconTint: .orange) {
+        MacDashCard(title: "Hardware Thermals & Lifetime History", systemIcon: "thermometer.medium", iconTint: .orange) {
             if let stats {
-                // Header Row
+                // Header Row: Current Temp as Main Stat
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—")
+                        Text(stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? (stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—"))
                             .font(.system(size: 28, weight: .bold))
                             .foregroundStyle(.primary)
 
-                        Text(stats.averageTemperatureCelsius.map { String(format: "%.1f°F • Lifetime Hardware Average", ($0 * 9.0 / 5.0) + 32.0) } ?? "Lifetime Hardware Average")
+                        Text(stats.currentTemperatureCelsius.map { String(format: "%.1f°F • Current Hardware Temperature", ($0 * 9.0 / 5.0) + 32.0) } ?? "Current Hardware Temperature")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
@@ -1577,22 +1577,43 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 4) {
+                        let status = stats.currentThermalStatus
                         HStack(spacing: 5) {
                             Circle()
-                                .fill(stats.healthSummary.color)
+                                .fill(status.color)
                                 .frame(width: 8, height: 8)
-                            Text(stats.healthSummary.label)
+                            Text(status.label)
                                 .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(stats.healthSummary.color)
+                                .foregroundStyle(status.color)
                         }
 
-                        Text("On-Demand PMU Query")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.down.circle")
+                                .font(.system(size: 9))
+                            Text("Pull-Only (Not Live)")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundStyle(.secondary)
                     }
                 }
 
-                // 4 Metric Callout Boxes
+                // Clarification banner: pull-only, not live
+                HStack(alignment: .center, spacing: 7) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.orange)
+                    Text("Pull-Only Telemetry: Thermals are read on-demand from the Apple PMU with zero background battery overhead. Not a live stream.")
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(Color.orange.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(.top, 4)
+
+                // 4 Metric Callout Boxes (Second Row Stats: Average kept here)
                 HStack(spacing: 8) {
                     metricCallout(
                         title: "Lifetime Avg",
@@ -1610,12 +1631,12 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                         color: .blue
                     )
                     metricCallout(
-                        title: "Live Probe",
-                        value: stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "—",
-                        color: .primary
+                        title: "Telemetry Mode",
+                        value: "Pull Only",
+                        color: .secondary
                     )
                 }
-                .padding(.top, 10)
+                .padding(.top, 6)
 
                 Divider().padding(.vertical, 8)
 
@@ -1656,7 +1677,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                 // Footer Actions
                 HStack {
                     if let date = stats.lastAnalyzedAt {
-                        Text("Analyzed \(date.formatted(date: .omitted, time: .standard)) (Zero background overhead)")
+                        Text("Pulled \(date.formatted(date: .omitted, time: .standard)) • Pull-only on-demand query")
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                     }
@@ -1678,7 +1699,7 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                         if viewModel.isAnalyzingThermals {
                             ProgressView().controlSize(.small)
                         } else {
-                            Label("Re-analyze", systemImage: "arrow.clockwise")
+                            Label("Pull Fresh Data", systemImage: "arrow.clockwise")
                                 .font(.system(size: 11, weight: .medium))
                         }
                     }
@@ -1697,11 +1718,11 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                             .padding(.top, 2)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Hardware Gas Gauge Lifetime Telemetry")
+                            Text("Hardware Gas Gauge & Thermal Telemetry (Pull Only)")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(.primary)
 
-                            Text("Queries the AppleSmartBattery Power Management Unit (PMU) for lifetime temperature averages, operating extremes, sensor samples count, and voltage limits. To keep Mont-E ultra-light, this check runs exclusively on-demand.")
+                            Text("Queries the AppleSmartBattery Power Management Unit (PMU) for current sensor temperature, lifetime averages, operating extremes, sensor samples count, and voltage limits. To keep Mont-E ultra-light, this check runs exclusively on-demand (pull-only, not live polling).")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -1709,6 +1730,14 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                     }
 
                     HStack {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.down.circle")
+                                .font(.system(size: 11))
+                            Text("Pull-only snapshot • Not live")
+                                .font(.system(size: 11))
+                        }
+                        .foregroundStyle(.secondary)
+
                         Spacer()
 
                         Button {
@@ -1717,11 +1746,11 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
                             if viewModel.isAnalyzingThermals {
                                 HStack(spacing: 6) {
                                     ProgressView().controlSize(.small)
-                                    Text("Querying Hardware PMU…")
+                                    Text("Pulling PMU Telemetry…")
                                         .font(.system(size: 12, weight: .semibold))
                                 }
                             } else {
-                                Label("Inspect Average Thermals", systemImage: "thermometer.medium")
+                                Label("Pull Hardware Thermals", systemImage: "arrow.down.circle")
                                     .font(.system(size: 12, weight: .semibold))
                             }
                         }
@@ -1752,13 +1781,13 @@ final class DashboardWindowController: NSWindowController, NSWindowDelegate {
 
     private func copyThermalDiagnostics(_ stats: LifetimeThermalStats) {
         NSPasteboard.general.clearContents()
+        let cur = stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
         let avg = stats.averageTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
         let maxT = stats.maxTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
         let minT = stats.minTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
-        let cur = stats.currentTemperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "N/A"
         let hrs = stats.totalOperatingHours.map(String.init) ?? "N/A"
         let samples = stats.temperatureSamplesCount.map(String.init) ?? "N/A"
-        let text = "Mont-E Lifetime Thermal Diagnostics:\n• Lifetime Average: \(avg)\n• Peak Temperature: \(maxT)\n• Min Temperature: \(minT)\n• Live PMU Sensor: \(cur)\n• Operating Hours: \(hrs)\n• Telemetry Samples: \(samples)\n• Health Assessment: \(stats.healthSummary.label)"
+        let text = "Mont-E Hardware Thermal Diagnostics (Pull-Only Snapshot):\n• Current Temperature: \(cur)\n• Lifetime Average: \(avg)\n• Peak Temperature: \(maxT)\n• Min Temperature: \(minT)\n• Operating Hours: \(hrs)\n• Telemetry Samples: \(samples)\n• Health Assessment: \(stats.currentThermalStatus.label) (Lifetime: \(stats.healthSummary.label))\n• Mode: On-Demand Pull (Not Live Polled)"
         NSPasteboard.general.setString(text, forType: .string)
     }
 }

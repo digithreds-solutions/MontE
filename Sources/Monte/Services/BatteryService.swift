@@ -216,14 +216,16 @@ struct BatteryService {
         }
 
         let currentTemp: Double? = {
-            guard let rawTemp = (props["Temperature"] as? NSNumber)?.doubleValue else { return nil }
-            if rawTemp > 1000.0 {
-                return (rawTemp / 10.0) - 273.15
-            } else if rawTemp > 100.0 {
-                return rawTemp / 10.0
-            } else {
-                return rawTemp
+            if let rawTemp = (props["Temperature"] as? NSNumber)?.doubleValue {
+                if rawTemp > 1000.0 {
+                    return (rawTemp / 10.0) - 273.15
+                } else if rawTemp > 100.0 {
+                    return rawTemp / 10.0
+                } else {
+                    return rawTemp
+                }
             }
+            return readBatteryTemperatureCelsius()
         }()
 
         guard let bData = props["BatteryData"] as? [String: Any],
